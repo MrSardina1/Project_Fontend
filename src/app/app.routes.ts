@@ -1,4 +1,3 @@
-// src/app/app.routes.ts
 import { Routes } from '@angular/router';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
@@ -34,7 +33,7 @@ export const routes: Routes = [
   { path: '', redirectTo: '/internships', pathMatch: 'full' },
   { 
     path: 'login', 
-    loadComponent: () => import('./components/login/login.components').then(m => m.LoginComponent) 
+    loadComponent: () => import('./components/login/login.component').then(m => m.LoginComponent) 
   },
   { 
     path: 'register', 

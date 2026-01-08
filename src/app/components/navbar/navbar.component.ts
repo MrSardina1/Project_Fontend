@@ -1,5 +1,4 @@
-// src/app/components/navbar/navbar.component.ts
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -66,9 +65,8 @@ import { AuthService } from '../../services/auth.service';
   `
 })
 export class NavbarComponent {
+  private authService = inject(AuthService);
   currentUser$ = this.authService.currentUser$;
-
-  constructor(private authService: AuthService) {}
 
   logout(event: Event) {
     event.preventDefault();

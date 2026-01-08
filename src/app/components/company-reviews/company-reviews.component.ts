@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -135,15 +135,12 @@ export class CompanyReviewsComponent implements OnInit {
   submitting = false;
   reviewError = '';
   reviewSuccess = '';
-  currentUser$: Observable<any>;
-
-  constructor(
-    private route: ActivatedRoute,
-    private reviewService: ReviewService,
-    private authService: AuthService
-  ) {
-    this.currentUser$ = this.authService.currentUser$;
-  }
+  
+  private route = inject(ActivatedRoute);
+  private reviewService = inject(ReviewService);
+  private authService = inject(AuthService);
+  
+  currentUser$: Observable<any> = this.authService.currentUser$;
 
   ngOnInit() {
     const companyId = this.route.snapshot.paramMap.get('id');

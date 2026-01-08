@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { InternshipService, Internship } from '../../services/internship.service';
@@ -87,15 +87,12 @@ export class InternshipsComponent implements OnInit {
   error = '';
   success = '';
   applying: string | null = null;
-  currentUser$: Observable<any>;
-
-  constructor(
-    private internshipService: InternshipService,
-    private applicationService: ApplicationService,
-    private authService: AuthService
-  ) {
-    this.currentUser$ = this.authService.currentUser$;
-  }
+  
+  private internshipService = inject(InternshipService);
+  private applicationService = inject(ApplicationService);
+  private authService = inject(AuthService);
+  
+  currentUser$: Observable<any> = this.authService.currentUser$;
 
   ngOnInit() {
     this.loadInternships();
