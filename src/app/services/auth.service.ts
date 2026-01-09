@@ -7,10 +7,12 @@ export interface User {
   userId: string;
   username: string;
   role: 'ADMIN' | 'COMPANY' | 'STUDENT';
+  profilePicture?: string;
 }
 
 export interface LoginResponse {
   access_token: string;
+  user: User;
 }
 
 @Injectable({
@@ -30,7 +32,7 @@ export class AuthService {
       .pipe(
         tap(response => {
           localStorage.setItem('token', response.access_token);
-          this.loadUserFromToken();
+          this.currentUserSubject.next(response.user);
         })
       );
   }
@@ -46,6 +48,8 @@ export class AuthService {
   logout() {
     localStorage.removeItem('token');
     this.currentUserSubject.next(null);
+    
+    // Navigate based on previous role
     this.router.navigate(['/login']);
   }
 
@@ -80,5 +84,9 @@ export class AuthService {
   hasRole(roles: string[]): boolean {
     const user = this.getCurrentUser();
     return user ? roles.includes(user.role) : false;
+  }
+
+  getDefaultProfilePicture(): string {
+    return '/assets/default-profile.png';
   }
 }

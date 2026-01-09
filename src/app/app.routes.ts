@@ -29,8 +29,23 @@ const roleGuard = (roles: string[]) => {
   };
 };
 
+// Admin guard - redirects to admin login if not authenticated
+const adminGuard = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+  
+  if (authService.isAuthenticated() && authService.hasRole(['ADMIN'])) {
+    return true;
+  }
+  
+  router.navigate(['/admin/login']);
+  return false;
+};
+
 export const routes: Routes = [
   { path: '', redirectTo: '/internships', pathMatch: 'full' },
+  
+  // Public routes
   { 
     path: 'login', 
     loadComponent: () => import('./components/login/login.component').then(m => m.LoginComponent) 
@@ -48,14 +63,24 @@ export const routes: Routes = [
     loadComponent: () => import('./components/internships/internships.component').then(m => m.InternshipsComponent) 
   },
   { 
-    path: 'create-internship', 
-    loadComponent: () => import('./components/create-internship/create-internship.component').then(m => m.CreateInternshipComponent),
-    canActivate: [authGuard, roleGuard(['COMPANY'])]
+    path: 'profile/user/:id', 
+    loadComponent: () => import('./components/user-profile/user-profile.component').then(m => m.UserProfileComponent) 
   },
   { 
-    path: 'applications', 
-    loadComponent: () => import('./components/applications/applications.component').then(m => m.ApplicationsComponent),
+    path: 'profile/company/:id', 
+    loadComponent: () => import('./components/company-profile/company-profile.component').then(m => m.CompanyProfileComponent) 
+  },
+  
+  // Student routes
+  { 
+    path: 'my-profile', 
+    loadComponent: () => import('./components/my-profile/my-profile.component').then(m => m.MyProfileComponent),
     canActivate: [authGuard]
+  },
+  { 
+    path: 'my-applications', 
+    loadComponent: () => import('./components/my-applications/my-applications.component').then(m => m.MyApplicationsComponent),
+    canActivate: [authGuard, roleGuard(['STUDENT'])]
   },
   { 
     path: 'my-reviews', 
@@ -63,12 +88,89 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard(['STUDENT'])]
   },
   { 
+    path: 'accepted-companies', 
+    loadComponent: () => import('./components/accepted-companies/accepted-companies.component').then(m => m.AcceptedCompaniesComponent),
+    canActivate: [authGuard, roleGuard(['STUDENT'])]
+  },
+  
+  // Company routes
+  { 
+    path: 'create-internship', 
+    loadComponent: () => import('./components/create-internship/create-internship.component').then(m => m.CreateInternshipComponent),
+    canActivate: [authGuard, roleGuard(['COMPANY'])]
+  },
+  { 
+    path: 'my-internships', 
+    loadComponent: () => import('./components/company-internships/company-internships.component').then(m => m.CompanyInternshipsComponent),
+    canActivate: [authGuard, roleGuard(['COMPANY'])]
+  },
+  { 
+    path: 'internship-applications/:id', 
+    loadComponent: () => import('./components/internship-applications/internship-applications.component').then(m => m.InternshipApplicationsComponent),
+    canActivate: [authGuard, roleGuard(['COMPANY'])]
+  },
+  
+  // Shared (Company & Admin)
+  { 
+    path: 'applications', 
+    loadComponent: () => import('./components/applications/applications.component').then(m => m.ApplicationsComponent),
+    canActivate: [authGuard, roleGuard(['ADMIN', 'COMPANY'])]
+  },
+  
+  // Public company reviews
+  { 
     path: 'company-reviews/:id', 
     loadComponent: () => import('./components/company-reviews/company-reviews.component').then(m => m.CompanyReviewsComponent)
   },
+  
+  // AI Chat
   { 
     path: 'ai-chat', 
     loadComponent: () => import('./components/ai-chat/ai-chat.component').then(m => m.AIChatComponent),
     canActivate: [authGuard]
-  }
+  },
+  
+  // Admin routes
+  {
+    path: 'admin/login',
+    loadComponent: () => import('./components/admin/admin-login/admin-login.component').then(m => m.AdminLoginComponent)
+  },
+  {
+    path: 'admin',
+    canActivate: [adminGuard],
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { 
+        path: 'dashboard', 
+        loadComponent: () => import('./components/admin/dashboard/dashboard.component').then(m => m.DashboardComponent)
+      },
+      { 
+        path: 'users', 
+        loadComponent: () => import('./components/admin/users/users.component').then(m => m.AdminUsersComponent)
+      },
+      { 
+        path: 'companies', 
+        loadComponent: () => import('./components/admin/companies/companies.component').then(m => m.AdminCompaniesComponent)
+      },
+      { 
+        path: 'pending-companies', 
+        loadComponent: () => import('./components/admin/pending-companies/pending-companies.component').then(m => m.PendingCompaniesComponent)
+      },
+      { 
+        path: 'internships', 
+        loadComponent: () => import('./components/admin/internships/internships.component').then(m => m.AdminInternshipsComponent)
+      },
+      { 
+        path: 'applications', 
+        loadComponent: () => import('./components/admin/applications/applications.component').then(m => m.AdminApplicationsComponent)
+      },
+      { 
+        path: 'reviews', 
+        loadComponent: () => import('./components/admin/reviews/reviews.component').then(m => m.AdminReviewsComponent)
+      },
+    ]
+  },
+  
+  // Wildcard route - redirect to home
+  { path: '**', redirectTo: '/internships' }
 ];
