@@ -12,8 +12,10 @@ export interface Internship {
     _id: string;
     name: string;
     website?: string;
+    profilePicture?: string;
   };
   createdAt: string;
+  applicationCount?: number;
 }
 
 @Injectable({

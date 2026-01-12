@@ -24,13 +24,17 @@ import { AuthService } from '../../services/auth.service';
                 <li class="nav-item">
                   <a class="nav-link" routerLink="/create-internship" routerLinkActive="active">Post Internship</a>
                 </li>
-              }
-              @if (user.role === 'COMPANY' || user.role === 'ADMIN') {
                 <li class="nav-item">
-                  <a class="nav-link" routerLink="/applications" routerLinkActive="active">Applications</a>
+                  <a class="nav-link" routerLink="/my-internships" routerLinkActive="active">My Internships</a>
                 </li>
               }
               @if (user.role === 'STUDENT') {
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/my-applications" routerLinkActive="active">My Applications</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" routerLink="/accepted-companies" routerLinkActive="active">Companies</a>
+                </li>
                 <li class="nav-item">
                   <a class="nav-link" routerLink="/my-reviews" routerLinkActive="active">My Reviews</a>
                 </li>
@@ -47,6 +51,8 @@ import { AuthService } from '../../services/auth.service';
                   {{ user.username }} ({{ user.role }})
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
+                  <li><a class="dropdown-item" routerLink="/my-profile">My Profile</a></li>
+                  <li><hr class="dropdown-divider"></li>
                   <li><a class="dropdown-item" href="#" (click)="logout($event)">Logout</a></li>
                 </ul>
               </li>

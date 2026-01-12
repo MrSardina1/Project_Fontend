@@ -64,22 +64,22 @@ export const routes: Routes = [
   },
   { 
     path: 'profile/user/:id', 
-    loadComponent: () => import('./components/user-profile/user-profile.component').then(m => m.UserProfileComponent) 
+    loadComponent: () => import('./components/profile/user-profile/user-profile.component').then(m => m.UserProfileComponent) 
   },
   { 
     path: 'profile/company/:id', 
-    loadComponent: () => import('./components/company-profile/company-profile.component').then(m => m.CompanyProfileComponent) 
+    loadComponent: () => import('./components/profile/company-profile/company-profile.component').then(m => m.CompanyProfileComponent) 
   },
   
   // Student routes
   { 
     path: 'my-profile', 
-    loadComponent: () => import('./components/my-profile/my-profile.component').then(m => m.MyProfileComponent),
+    loadComponent: () => import('./components/profile/my-profile/my-profile.component').then(m => m.MyProfileComponent),
     canActivate: [authGuard]
   },
   { 
     path: 'my-applications', 
-    loadComponent: () => import('./components/my-applications/my-applications.component').then(m => m.MyApplicationsComponent),
+    loadComponent: () => import('./components/student/my-applications/my-applications.component').then(m => m.MyApplicationsComponent),
     canActivate: [authGuard, roleGuard(['STUDENT'])]
   },
   { 
@@ -89,7 +89,7 @@ export const routes: Routes = [
   },
   { 
     path: 'accepted-companies', 
-    loadComponent: () => import('./components/accepted-companies/accepted-companies.component').then(m => m.AcceptedCompaniesComponent),
+    loadComponent: () => import('./components/student/accepted-companies/accepted-companies.component').then(m => m.AcceptedCompaniesComponent),
     canActivate: [authGuard, roleGuard(['STUDENT'])]
   },
   
@@ -101,12 +101,12 @@ export const routes: Routes = [
   },
   { 
     path: 'my-internships', 
-    loadComponent: () => import('./components/company-internships/company-internships.component').then(m => m.CompanyInternshipsComponent),
+    loadComponent: () => import('./components/company/company-internships/company-internships.component').then(m => m.CompanyInternshipsComponent),
     canActivate: [authGuard, roleGuard(['COMPANY'])]
   },
   { 
     path: 'internship-applications/:id', 
-    loadComponent: () => import('./components/internship-applications/internship-applications.component').then(m => m.InternshipApplicationsComponent),
+    loadComponent: () => import('./components/company/internship-applications/internship-applications.component').then(m => m.InternshipApplicationsComponent),
     canActivate: [authGuard, roleGuard(['COMPANY'])]
   },
   
@@ -133,7 +133,7 @@ export const routes: Routes = [
   // Admin routes
   {
     path: 'admin/login',
-    loadComponent: () => import('./components/admin/admin-login/admin-login.component').then(m => m.AdminLoginComponent)
+    loadComponent: () => import('./components/admin/admin-login/admin-login-component').then(m => m.AdminLoginComponent)
   },
   {
     path: 'admin',

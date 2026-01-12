@@ -8,13 +8,18 @@ export interface Application {
     _id: string;
     username: string;
     email: string;
+    profilePicture?: string;
   };
   internship: {
     _id: string;
     title: string;
+    location: string;
+    duration: string;
     company: {
       _id: string;
       name: string;
+      email: string;
+      website?: string;
     };
   };
   status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
@@ -37,7 +42,19 @@ export class ApplicationService {
     return this.http.get<Application[]>(this.apiUrl);
   }
 
+  getMyApplications(): Observable<Application[]> {
+    return this.http.get<Application[]>(`${this.apiUrl}/my-applications`);
+  }
+
+  getAcceptedCompanies(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/accepted-companies`);
+  }
+
   updateStatus(id: string, status: string): Observable<Application> {
     return this.http.patch<Application>(`${this.apiUrl}/${id}/status`, { status });
+  }
+
+  getApplicationCount(internshipId: string): Observable<{ count: number }> {
+    return this.http.get<{ count: number }>(`${this.apiUrl}/count/${internshipId}`);
   }
 }
