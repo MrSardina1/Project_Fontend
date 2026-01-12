@@ -10,84 +10,99 @@ import { AuthService } from '../../../services/auth.service';
   imports: [CommonModule, FormsModule],
   template: `
     <div class="container mt-4">
-      <h2>My Profile</h2>
+      <h2 class="mb-4">My Profile</h2>
 
       @if (loading) {
-        <div class="text-center">
-          <div class="spinner-border" role="status">
+        <div class="text-center py-5">
+          <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Loading...</span>
           </div>
         </div>
       }
 
       @if (error) {
-        <div class="alert alert-danger">{{ error }}</div>
+        <div class="alert alert-danger alert-dismissible fade show">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}
+          <button type="button" class="btn-close" (click)="error = ''"></button>
+        </div>
       }
 
       @if (success) {
-        <div class="alert alert-success">{{ success }}</div>
+        <div class="alert alert-success alert-dismissible fade show">
+          <i class="bi bi-check-circle-fill me-2"></i>{{ success }}
+          <button type="button" class="btn-close" (click)="success = ''"></button>
+        </div>
       }
 
       @if (profile) {
-        <div class="row">
+        <div class="row g-4">
           <!-- Profile Picture Section -->
-          <div class="col-md-4">
-            <div class="card mb-4">
-              <div class="card-body text-center">
-                <img 
-                  [src]="getProfilePictureUrl()" 
-                  class="rounded-circle mb-3" 
-                  style="width: 150px; height: 150px; object-fit: cover;"
-                  alt="Profile Picture">
+          <div class="col-lg-4">
+            <div class="card shadow-sm border-0">
+              <div class="card-body text-center p-4">
+                <!-- Live Preview Image -->
+                <div class="position-relative d-inline-block mb-3">
+                  <img 
+                    [src]="previewImage || getProfilePictureUrl()" 
+                    class="rounded-circle profile-image" 
+                    alt="Profile Picture">
+                  <div class="profile-badge">
+                    <span class="badge bg-primary">{{ profile.role || 'COMPANY' }}</span>
+                  </div>
+                </div>
                 
-                <h5>{{ profile.username || profile.name }}</h5>
-                <p class="text-muted">{{ profile.email }}</p>
-                <span class="badge bg-primary">{{ profile.role || 'COMPANY' }}</span>
+                <h5 class="mb-1">{{ profile.username || profile.name }}</h5>
+                <p class="text-muted mb-3">{{ profile.email }}</p>
 
                 <!-- Picture Upload Form -->
-                <div class="mt-3">
+                <div class="picture-upload-section">
                   <input 
                     type="file" 
-                    class="form-control mb-2" 
+                    #fileInput
+                    class="d-none" 
                     (change)="onFileSelected($event)"
                     accept="image/*">
                   
                   @if (selectedFile) {
                     <div class="alert alert-info p-2 mb-2">
-                      <small>Selected: {{ selectedFile.name }}</small>
+                      <i class="bi bi-image me-2"></i>
+                      <small>{{ selectedFile.name }}</small>
                     </div>
-                    <button 
-                      class="btn btn-primary btn-sm w-100 mb-2" 
-                      (click)="uploadPicture()"
-                      [disabled]="uploadingPicture">
-                      @if (uploadingPicture) {
-                        <span class="spinner-border spinner-border-sm me-1"></span>
-                      }
-                      Confirm Upload
-                    </button>
-                    <button 
-                      class="btn btn-secondary btn-sm w-100" 
-                      (click)="cancelPictureUpload()">
-                      Cancel
-                    </button>
+                    <div class="d-grid gap-2">
+                      <button 
+                        class="btn btn-primary" 
+                        (click)="uploadPicture()"
+                        [disabled]="uploadingPicture">
+                        @if (uploadingPicture) {
+                          <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        <i class="bi bi-upload me-2"></i>Confirm Upload
+                      </button>
+                      <button 
+                        class="btn btn-outline-secondary" 
+                        (click)="cancelPictureUpload()">
+                        <i class="bi bi-x-circle me-2"></i>Cancel
+                      </button>
+                    </div>
                   } @else {
-                    <button 
-                      class="btn btn-outline-primary btn-sm w-100" 
-                      onclick="this.previousElementSibling.click()">
-                      Change Picture
-                    </button>
-                  }
-
-                  @if (profile.profilePicture) {
-                    <button 
-                      class="btn btn-outline-danger btn-sm w-100 mt-2" 
-                      (click)="removePicture()"
-                      [disabled]="removingPicture">
-                      @if (removingPicture) {
-                        <span class="spinner-border spinner-border-sm me-1"></span>
+                    <div class="d-grid gap-2">
+                      <button 
+                        class="btn btn-outline-primary" 
+                        (click)="fileInput.click()">
+                        <i class="bi bi-camera me-2"></i>Change Picture
+                      </button>
+                      @if (profile.profilePicture) {
+                        <button 
+                          class="btn btn-outline-danger" 
+                          (click)="removePicture()"
+                          [disabled]="removingPicture">
+                          @if (removingPicture) {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                          }
+                          <i class="bi bi-trash me-2"></i>Remove Picture
+                        </button>
                       }
-                      Remove Picture
-                    </button>
+                    </div>
                   }
                 </div>
               </div>
@@ -95,17 +110,19 @@ import { AuthService } from '../../../services/auth.service';
           </div>
 
           <!-- Profile Information Section -->
-          <div class="col-md-8">
-            <!-- Bio/Description Edit -->
-            <div class="card mb-4">
-              <div class="card-header">
-                <h5 class="mb-0">Profile Information</h5>
+          <div class="col-lg-8">
+            <!-- Profile Info Card -->
+            <div class="card shadow-sm border-0 mb-4">
+              <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person-circle me-2"></i>Profile Information</h5>
               </div>
-              <div class="card-body">
+              <div class="card-body p-4">
                 <form (ngSubmit)="updateProfile()">
                   @if (profile.role !== 'COMPANY') {
                     <div class="mb-3">
-                      <label class="form-label">Bio</label>
+                      <label class="form-label fw-bold">
+                        <i class="bi bi-pencil me-2"></i>Bio
+                      </label>
                       <textarea 
                         class="form-control" 
                         [(ngModel)]="editBio" 
@@ -115,7 +132,9 @@ import { AuthService } from '../../../services/auth.service';
                     </div>
                   } @else {
                     <div class="mb-3">
-                      <label class="form-label">Company Description</label>
+                      <label class="form-label fw-bold">
+                        <i class="bi bi-building me-2"></i>Company Description
+                      </label>
                       <textarea 
                         class="form-control" 
                         [(ngModel)]="editDescription" 
@@ -124,7 +143,9 @@ import { AuthService } from '../../../services/auth.service';
                         placeholder="Describe your company..."></textarea>
                     </div>
                     <div class="mb-3">
-                      <label class="form-label">Website</label>
+                      <label class="form-label fw-bold">
+                        <i class="bi bi-globe me-2"></i>Website
+                      </label>
                       <input 
                         type="url" 
                         class="form-control" 
@@ -141,28 +162,34 @@ import { AuthService } from '../../../services/auth.service';
                     @if (updatingProfile) {
                       <span class="spinner-border spinner-border-sm me-2"></span>
                     }
-                    Save Changes
+                    <i class="bi bi-check-circle me-2"></i>Save Changes
                   </button>
                 </form>
               </div>
             </div>
 
-            <!-- Change Password Section -->
-            <div class="card">
-              <div class="card-header">
-                <h5 class="mb-0">Change Password</h5>
+            <!-- Change Password Card -->
+            <div class="card shadow-sm border-0">
+              <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-shield-lock me-2"></i>Security Settings</h5>
               </div>
-              <div class="card-body">
+              <div class="card-body p-4">
                 @if (passwordError) {
-                  <div class="alert alert-danger">{{ passwordError }}</div>
+                  <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ passwordError }}
+                  </div>
                 }
                 @if (passwordSuccess) {
-                  <div class="alert alert-success">{{ passwordSuccess }}</div>
+                  <div class="alert alert-success">
+                    <i class="bi bi-check-circle-fill me-2"></i>{{ passwordSuccess }}
+                  </div>
                 }
                 
                 <form (ngSubmit)="changePassword()">
                   <div class="mb-3">
-                    <label class="form-label">Current Password</label>
+                    <label class="form-label fw-bold">
+                      <i class="bi bi-key me-2"></i>Current Password
+                    </label>
                     <input 
                       type="password" 
                       class="form-control" 
@@ -171,7 +198,9 @@ import { AuthService } from '../../../services/auth.service';
                       required>
                   </div>
                   <div class="mb-3">
-                    <label class="form-label">New Password</label>
+                    <label class="form-label fw-bold">
+                      <i class="bi bi-key-fill me-2"></i>New Password
+                    </label>
                     <input 
                       type="password" 
                       class="form-control" 
@@ -179,10 +208,14 @@ import { AuthService } from '../../../services/auth.service';
                       name="newPassword"
                       minlength="6"
                       required>
-                    <small class="text-muted">Minimum 6 characters</small>
+                    <small class="text-muted">
+                      <i class="bi bi-info-circle me-1"></i>Minimum 6 characters
+                    </small>
                   </div>
                   <div class="mb-3">
-                    <label class="form-label">Confirm New Password</label>
+                    <label class="form-label fw-bold">
+                      <i class="bi bi-check2-circle me-2"></i>Confirm New Password
+                    </label>
                     <input 
                       type="password" 
                       class="form-control" 
@@ -193,12 +226,12 @@ import { AuthService } from '../../../services/auth.service';
                   
                   <button 
                     type="submit" 
-                    class="btn btn-warning"
+                    class="btn btn-warning text-dark"
                     [disabled]="changingPassword || !oldPassword || !newPassword || !confirmPassword">
                     @if (changingPassword) {
                       <span class="spinner-border spinner-border-sm me-2"></span>
                     }
-                    Change Password
+                    <i class="bi bi-shield-check me-2"></i>Change Password
                   </button>
                 </form>
               </div>
@@ -207,7 +240,52 @@ import { AuthService } from '../../../services/auth.service';
         </div>
       }
     </div>
-  `
+  `,
+  styles: [`
+    .profile-image {
+      width: 180px;
+      height: 180px;
+      object-fit: cover;
+      border: 4px solid #f8f9fa;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transition: transform 0.3s ease;
+    }
+
+    .profile-image:hover {
+      transform: scale(1.05);
+    }
+
+    .profile-badge {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+    }
+
+    .picture-upload-section {
+      margin-top: 1.5rem;
+    }
+
+    .card {
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1) !important;
+    }
+
+    .card-header {
+      border-bottom: 2px solid rgba(255,255,255,0.1);
+    }
+
+    .btn {
+      transition: all 0.3s ease;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+  `]
 })
 export class MyProfileComponent implements OnInit {
   profile: any = null;
@@ -221,8 +299,9 @@ export class MyProfileComponent implements OnInit {
   editWebsite = '';
   updatingProfile = false;
 
-  // Picture upload
+  // Picture upload with live preview
   selectedFile: File | null = null;
+  previewImage: string | null = null;
   uploadingPicture = false;
   removingPicture = false;
 
@@ -264,7 +343,6 @@ export class MyProfileComponent implements OnInit {
     return this.profileService.getProfilePictureUrl(this.profile?.profilePicture);
   }
 
-  // Picture upload methods
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
@@ -280,8 +358,16 @@ export class MyProfileComponent implements OnInit {
         event.target.value = '';
         return;
       }
+      
       this.selectedFile = file;
       this.error = '';
+      
+      // Create live preview
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.previewImage = e.target.result;
+      };
+      reader.readAsDataURL(file);
     }
   }
 
@@ -296,10 +382,7 @@ export class MyProfileComponent implements OnInit {
       next: (response) => {
         this.success = 'Profile picture updated successfully!';
         this.uploadingPicture = false;
-        this.selectedFile = null;
-        // Clear file input
-        const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-        if (fileInput) fileInput.value = '';
+        this.cancelPictureUpload();
         this.loadProfile();
         setTimeout(() => this.success = '', 3000);
       },
@@ -312,6 +395,7 @@ export class MyProfileComponent implements OnInit {
 
   cancelPictureUpload() {
     this.selectedFile = null;
+    this.previewImage = null;
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     if (fileInput) fileInput.value = '';
   }
@@ -329,6 +413,7 @@ export class MyProfileComponent implements OnInit {
       next: () => {
         this.success = 'Profile picture removed successfully!';
         this.removingPicture = false;
+        this.previewImage = null;
         this.loadProfile();
         setTimeout(() => this.success = '', 3000);
       },
@@ -339,7 +424,6 @@ export class MyProfileComponent implements OnInit {
     });
   }
 
-  // Profile update method
   updateProfile() {
     this.updatingProfile = true;
     this.error = '';
@@ -368,7 +452,6 @@ export class MyProfileComponent implements OnInit {
     });
   }
 
-  // Password change method
   changePassword() {
     this.passwordError = '';
     this.passwordSuccess = '';

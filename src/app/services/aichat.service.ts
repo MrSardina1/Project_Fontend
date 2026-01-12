@@ -6,6 +6,35 @@ export interface ChatResponse {
   response: string;
 }
 
+export interface CVData {
+  fullName: string;
+  email: string;
+  phone?: string;
+  location?: string;
+  summary?: string;
+  skills: string[];
+  experience: Array<{
+    title: string;
+    company: string;
+    duration: string;
+    description: string;
+  }>;
+  education: Array<{
+    degree: string;
+    institution: string;
+    year: string;
+  }>;
+  projects?: Array<{
+    name: string;
+    description: string;
+    technologies: string[];
+  }>;
+  languages?: string[];
+  certifications?: string[];
+  careerGoals?: string;
+  preferredIndustries?: string[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -16,5 +45,17 @@ export class AIChatService {
 
   ask(prompt: string): Observable<ChatResponse> {
     return this.http.post<ChatResponse>(`${this.apiUrl}/ask`, { prompt });
+  }
+
+  saveCV(cvData: CVData): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/cv`, cvData);
+  }
+
+  getCV(): Observable<CVData> {
+    return this.http.get<CVData>(`${this.apiUrl}/cv`);
+  }
+
+  analyzeCV(): Observable<ChatResponse> {
+    return this.http.get<ChatResponse>(`${this.apiUrl}/cv/analyze`);
   }
 }
