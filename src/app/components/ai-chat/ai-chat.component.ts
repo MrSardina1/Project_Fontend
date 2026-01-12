@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AIChatService } from '../../services/aichat.service';
+import { AIChatService, ChatResponse } from '../../services/aichat.service';
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
@@ -378,7 +378,7 @@ export class AIChatComponent implements OnInit {
 
   checkCV() {
     this.aiChatService.getCV().subscribe({
-      next: (cv) => {
+      next: (cv: CVData | null) => {
         this.hasCV = !!cv;
         if (cv) {
           this.cvData = cv;
@@ -417,8 +417,8 @@ export class AIChatComponent implements OnInit {
     
     this.addSystemMessage('Analyzing your CV and matching with available internships...');
 
-    this.aiChatService.ask('Analyze my CV and recommend internships').subscribe({
-      next: (response) => {
+    this.aiChatService.analyzeCV().subscribe({
+      next: (response: ChatResponse) => {
         this.messages.push({
           role: 'assistant',
           content: response.response,
@@ -449,7 +449,7 @@ export class AIChatComponent implements OnInit {
     this.error = '';
 
     this.aiChatService.ask(userPrompt).subscribe({
-      next: (response) => {
+      next: (response: ChatResponse) => {
         this.messages.push({
           role: 'assistant',
           content: response.response,

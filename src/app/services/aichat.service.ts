@@ -1,7 +1,9 @@
+// src/app/services/aichat.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+// Define the response interface properly
 export interface ChatResponse {
   response: string;
 }
@@ -51,8 +53,8 @@ export class AIChatService {
     return this.http.post<{ message: string }>(`${this.apiUrl}/cv`, cvData);
   }
 
-  getCV(): Observable<CVData> {
-    return this.http.get<CVData>(`${this.apiUrl}/cv`);
+  getCV(): Observable<CVData | null> {
+    return this.http.get<CVData | null>(`${this.apiUrl}/cv`);
   }
 
   analyzeCV(): Observable<ChatResponse> {
