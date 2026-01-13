@@ -74,12 +74,12 @@ export class VerifyEmailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private authService: AuthService
-  ) {}
+  ) { }
 
   ngOnInit() {
     // Get token from URL query parameters
     const token = this.route.snapshot.queryParamMap.get('token');
-    
+
     console.log('=== EMAIL VERIFICATION DEBUG ===');
     console.log('Full URL:', window.location.href);
     console.log('Token from URL:', token);
@@ -99,8 +99,15 @@ export class VerifyEmailComponent implements OnInit {
         console.log('✅ Verification SUCCESS:', response);
         this.loading = false;
         this.success = true;
-        this.message = response.message || 'Email verified successfully! You can now login.';
-        
+        this.message = response.message || 'Email verified successfully! You are now logged in.';
+
+        // Auto-login
+        if (response.access_token) {
+          localStorage.setItem('token', response.access_token);
+          // Refresh user state if needed (AuthService usually handles this on next navigation/load)
+          // But since we want immediate feedback, we rely on the redirect
+        }
+
         // Start countdown and redirect
         this.startCountdown();
       },
@@ -120,7 +127,9 @@ export class VerifyEmailComponent implements OnInit {
       this.countdown--;
       if (this.countdown <= 0) {
         clearInterval(this.countdownInterval);
-        this.router.navigate(['/login']);
+        this.router.navigate(['/internships']).then(() => {
+          window.location.reload(); // Reload to ensure auth state is picked up by all components
+        });
       }
     }, 1000);
   }

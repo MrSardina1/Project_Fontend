@@ -26,7 +26,10 @@ import { AuthService } from '../../services/auth.service';
                   <input type="email" class="form-control" [(ngModel)]="email" name="email" required>
                 </div>
                 <div class="mb-3">
-                  <label class="form-label">Password</label>
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label class="form-label mb-0">Password</label>
+                    <a routerLink="/forgot-password" class="text-decoration-none small">Forgot password?</a>
+                  </div>
                   <input type="password" class="form-control" [(ngModel)]="password" name="password" required>
                 </div>
                 <button type="submit" class="btn btn-primary w-100" [disabled]="loading">
@@ -57,7 +60,7 @@ export class LoginComponent {
   constructor(
     private authService: AuthService,
     private router: Router
-  ) {}
+  ) { }
 
   onSubmit() {
     this.loading = true;

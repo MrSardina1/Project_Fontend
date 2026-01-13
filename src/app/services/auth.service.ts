@@ -22,7 +22,7 @@ export class AuthService {
   private apiUrl = 'http://localhost:3000';
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
-  
+
   constructor(private http: HttpClient, private router: Router) {
     this.loadUserFromToken();
   }
@@ -58,7 +58,7 @@ export class AuthService {
   logout() {
     localStorage.removeItem('token');
     this.currentUserSubject.next(null);
-    
+
     // Navigate based on previous role
     this.router.navigate(['/login']);
   }
@@ -107,5 +107,13 @@ export class AuthService {
 
   resendVerification(email: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/resend-verification`, { email });
+  }
+
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/forgot-password`, { email });
+  }
+
+  resetPassword(token: string, password: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/reset-password`, { token, password });
   }
 }
