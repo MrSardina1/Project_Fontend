@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, BehaviorSubject } from 'rxjs';
@@ -37,12 +37,22 @@ export class AuthService {
       );
   }
 
+  // FIXED: Changed from /users/register to /auth/register
   register(userData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/users/register`, userData);
+    console.log('Registering user with data:', userData);
+    return this.http.post(`${this.apiUrl}/auth/register`, userData)
+      .pipe(
+        tap(response => console.log('Registration response:', response))
+      );
   }
 
+  // FIXED: Changed from /companies/register to /auth/register-company
   registerCompany(companyData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/companies/register`, companyData);
+    console.log('Registering company with data:', companyData);
+    return this.http.post(`${this.apiUrl}/auth/register-company`, companyData)
+      .pipe(
+        tap(response => console.log('Company registration response:', response))
+      );
   }
 
   logout() {
@@ -88,5 +98,14 @@ export class AuthService {
 
   getDefaultProfilePicture(): string {
     return '/assets/default-profile.png';
+  }
+
+  // Additional helper methods for email verification
+  verifyEmail(token: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/auth/verify-email?token=${token}`);
+  }
+
+  resendVerification(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/auth/resend-verification`, { email });
   }
 }

@@ -168,6 +168,11 @@ export const routes: Routes = [
         path: 'reviews', 
         loadComponent: () => import('./components/admin/reviews/reviews.component').then(m => m.AdminReviewsComponent)
       },
+      {
+        path: 'verify-email',
+        loadComponent: () =>
+          import('./components/verify-email/verify-email.component').then(m => m.VerifyEmailComponent)
+      },
     ]
   },
   
