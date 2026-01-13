@@ -17,6 +17,7 @@ export interface AdminUser {
   username: string;
   email: string;
   role: string;
+  isActive: boolean;
   profilePicture?: string;
   createdAt: string;
 }
@@ -46,7 +47,7 @@ export interface AdminInternship {
 export class AdminService {
   private apiUrl = 'http://localhost:3000/admin';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // Dashboard
   getStats(): Observable<DashboardStats> {
@@ -59,7 +60,7 @@ export class AdminService {
     if (sortBy) params = params.set('sortBy', sortBy);
     if (filterBy) params = params.set('filterBy', filterBy);
     if (filterValue) params = params.set('filterValue', filterValue);
-    
+
     return this.http.get<AdminUser[]>(`${this.apiUrl}/users`, { params });
   }
 
@@ -77,8 +78,8 @@ export class AdminService {
 
   // Companies
   getAllCompanies(
-    sortBy?: string, 
-    filterBy?: string, 
+    sortBy?: string,
+    filterBy?: string,
     filterValue?: string,
     status?: string
   ): Observable<AdminCompany[]> {
@@ -87,7 +88,7 @@ export class AdminService {
     if (filterBy) params = params.set('filterBy', filterBy);
     if (filterValue) params = params.set('filterValue', filterValue);
     if (status) params = params.set('status', status);
-    
+
     return this.http.get<AdminCompany[]>(`${this.apiUrl}/companies`, { params });
   }
 
@@ -109,15 +110,15 @@ export class AdminService {
 
   // Internships
   getAllInternships(
-    sortBy?: string, 
-    filterBy?: string, 
+    sortBy?: string,
+    filterBy?: string,
     filterValue?: string
   ): Observable<AdminInternship[]> {
     let params = new HttpParams();
     if (sortBy) params = params.set('sortBy', sortBy);
     if (filterBy) params = params.set('filterBy', filterBy);
     if (filterValue) params = params.set('filterValue', filterValue);
-    
+
     return this.http.get<AdminInternship[]>(`${this.apiUrl}/internships`, { params });
   }
 

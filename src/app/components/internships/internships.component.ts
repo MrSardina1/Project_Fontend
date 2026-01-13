@@ -12,109 +12,122 @@ import { Observable } from 'rxjs';
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule],
   template: `
-    <div class="container mt-4">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Available Internships</h2>
+    <div class="page-container">
+      <header class="page-header d-flex justify-content-between align-items-center mb-5">
+        <div>
+          <h1 class="page-title text-gradient">Available Internships</h1>
+          <p class="text-muted">Find your next big opportunity today</p>
+        </div>
         @if ((currentUser$ | async)?.role === 'COMPANY') {
-          <a routerLink="/create-internship" class="btn btn-primary">Post New Internship</a>
+          <a routerLink="/create-internship" class="btn btn-primary shadow-sm">
+            <i class="bi bi-plus-lg me-2"></i>Post New Internship
+          </a>
         }
-      </div>
+      </header>
 
-      <!-- Filters and Sorting -->
-      <div class="card mb-4">
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-4 mb-3">
-              <label class="form-label">Sort By</label>
-              <select class="form-select" [(ngModel)]="sortBy" (change)="applySortAndFilter()">
-                <option value="">Default (Newest First)</option>
-                <option value="title">Title (A-Z)</option>
-                <option value="location">Location (A-Z)</option>
-                <option value="company">Company (A-Z)</option>
-              </select>
-            </div>
-            <div class="col-md-4 mb-3">
-              <label class="form-label">Filter By</label>
-              <select class="form-select" [(ngModel)]="filterBy" (change)="applySortAndFilter()">
-                <option value="">No Filter</option>
-                <option value="title">Title</option>
-                <option value="location">Location</option>
-                <option value="company">Company</option>
-              </select>
-            </div>
-            <div class="col-md-4 mb-3">
-              <label class="form-label">Search</label>
+      <!-- Search & Filters -->
+      <section class="filters-section glass p-4 mb-5 border-0 shadow-sm rounded-4">
+        <div class="row g-3">
+          <div class="col-lg-3 col-md-4">
+            <div class="input-group search-group">
+              <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
               <input 
                 type="text" 
-                class="form-control" 
+                class="form-control border-start-0 ps-0" 
                 [(ngModel)]="filterValue" 
                 (input)="applySortAndFilter()"
                 [disabled]="!filterBy"
-                placeholder="Enter search term...">
+                placeholder="Search opportunities...">
             </div>
           </div>
+          <div class="col-lg-3 col-md-4">
+            <select class="form-select" [(ngModel)]="filterBy" (change)="applySortAndFilter()">
+              <option value="">Filter by Field</option>
+              <option value="title">Internship Title</option>
+              <option value="location">Location</option>
+              <option value="company">Company Name</option>
+            </select>
+          </div>
+          <div class="col-lg-3 col-md-4">
+            <select class="form-select" [(ngModel)]="sortBy" (change)="applySortAndFilter()">
+              <option value="">Sort by Date</option>
+              <option value="title">Title (A-Z)</option>
+              <option value="location">Location (A-Z)</option>
+              <option value="company">Company (A-Z)</option>
+            </select>
+          </div>
+          <div class="col-lg-3 col-md-12 text-lg-end">
+            <button class="btn btn-outline-secondary px-4" (click)="filterBy = ''; filterValue = ''; applySortAndFilter()">
+              Reset Filters
+            </button>
+          </div>
         </div>
-      </div>
+      </section>
 
       @if (loading) {
-        <div class="text-center">
-          <div class="spinner-border" role="status">
+        <div class="d-flex justify-content-center py-5">
+          <div class="spinner-grow text-primary" role="status">
             <span class="visually-hidden">Loading...</span>
           </div>
         </div>
       }
 
       @if (error) {
-        <div class="alert alert-danger">{{ error }}</div>
+        <div class="alert alert-danger rounded-3 p-3 mb-4 shadow-sm border-0 d-flex align-items-center">
+          <i class="bi bi-x-circle-fill me-2 fs-5"></i>
+          <div>{{ error }}</div>
+        </div>
       }
 
       @if (success) {
-        <div class="alert alert-success">{{ success }}</div>
+        <div class="alert alert-success rounded-3 p-3 mb-4 shadow-sm border-0 d-flex align-items-center">
+          <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+          <div>{{ success }}</div>
+        </div>
       }
 
-      <div class="row">
+      <div class="row g-4">
         @for (internship of filteredInternships; track internship._id) {
-          <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100">
-              <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                  <h5 class="card-title">{{ internship.title }}</h5>
-                  <span class="badge bg-info">
-                    {{ internship.applicationCount || 0 }} applicants
+          <div class="col-xl-4 col-lg-6 col-md-6">
+            <div class="internship-card p-4 h-100 shadow-sm border-0 rounded-4">
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="company-logo">{{ internship.company.name.charAt(0) }}</div>
+                <div class="badge-group">
+                  @if ((internship.applicationCount || 0) > 5) {
+                    <span class="badge bg-soft-primary text-primary">Trending</span>
+                  }
+                  <span class="badge bg-soft-info text-info ms-2">
+                    {{ internship.applicationCount || 0 }} Applied
                   </span>
                 </div>
-                <h6 class="card-subtitle mb-2 text-muted">{{ internship.company.name }}</h6>
-                <p class="card-text">{{ internship.description }}</p>
-                <p class="mb-1"><strong>Location:</strong> {{ internship.location }}</p>
-                <p class="mb-3"><strong>Duration:</strong> {{ internship.duration }}</p>
-                
-                <div class="d-flex gap-2 flex-wrap">
-                  @if (internship.company.website) {
-                    <a [href]="internship.company.website" target="_blank" class="btn btn-sm btn-outline-secondary">
-                      Company Website
-                    </a>
-                  }
-                  <a [routerLink]="['/company-reviews', internship.company._id]" class="btn btn-sm btn-outline-info">
-                    Reviews
-                  </a>
-                  <a [routerLink]="['/profile/company', internship.company._id]" class="btn btn-sm btn-outline-primary">
-                    Company Profile
-                  </a>
-                  @if ((currentUser$ | async)?.role === 'STUDENT') {
-                    <button 
-                      class="btn btn-sm btn-primary" 
-                      (click)="apply(internship._id)"
-                      [disabled]="applying === internship._id">
-                      @if (applying === internship._id) {
-                        <span class="spinner-border spinner-border-sm me-1"></span>
-                      }
-                      Apply
-                    </button>
-                  }
-                </div>
               </div>
-              <div class="card-footer text-muted">
-                Posted: {{ internship.createdAt | date:'short' }}
+              
+              <h3 class="intern-title mb-1">{{ internship.title }}</h3>
+              <p class="company-name text-primary fw-medium mb-3">{{ internship.company.name }}</p>
+              
+              <div class="meta-info mb-4">
+                <div class="meta-item"><i class="bi bi-geo-alt me-2"></i>{{ internship.location }}</div>
+                <div class="meta-item"><i class="bi bi-calendar-event me-2"></i>{{ internship.duration }}</div>
+              </div>
+
+              <p class="intern-desc text-muted mb-4 text-truncate-2">
+                {{ internship.description }}
+              </p>
+              
+              <div class="card-actions mt-auto d-flex gap-2">
+                <button 
+                  class="btn btn-primary flex-grow-1"
+                  (click)="apply(internship._id)"
+                  [disabled]="applying === internship._id"
+                  *ngIf="(currentUser$ | async)?.role === 'STUDENT'">
+                  @if (applying === internship._id) {
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+                  }
+                  Apply Now
+                </button>
+                <a [routerLink]="['/profile/company', internship.company._id]" class="btn btn-light-primary px-3" title="View Company">
+                  <i class="bi bi-eye"></i>
+                </a>
               </div>
             </div>
           </div>
@@ -122,12 +135,99 @@ import { Observable } from 'rxjs';
       </div>
 
       @if (filteredInternships.length === 0 && !loading) {
-        <div class="alert alert-info">
-          {{ filterBy ? 'No internships match your search criteria.' : 'No internships available at the moment.' }}
+        <div class="text-center py-5">
+          <img src="assets/empty.svg" alt="No results" style="max-width: 200px;" class="mb-4 opacity-50">
+          <h4 class="text-muted">No internships match your criteria</h4>
+          <p class="text-secondary">Try adjusting your filters or search term</p>
         </div>
       }
     </div>
-  `
+  `,
+  styles: [`
+    .page-container {
+      max-width: 1200px;
+    }
+
+    .page-title {
+      font-size: 2.25rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+
+    .internship-card {
+      background: white;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--border) !important;
+    }
+
+    .internship-card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-md) !important;
+      border-color: var(--primary) !important;
+    }
+
+    .company-logo {
+      width: 48px;
+      height: 48px;
+      background: var(--primary-light);
+      color: var(--primary);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+
+    .intern-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .meta-item {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+
+    .intern-desc {
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .bg-soft-primary { background-color: rgba(79, 70, 229, 0.1); }
+    .bg-soft-info { background-color: rgba(6, 182, 212, 0.1); }
+    
+    .btn-light-primary {
+      background: var(--primary-light);
+      color: var(--primary);
+      border: none;
+    }
+    .btn-light-primary:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    .text-truncate-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .search-group .form-control:focus {
+      box-shadow: none;
+    }
+
+    .form-select, .form-control {
+      border-radius: 10px;
+      padding: 0.6rem 1rem;
+      border: 1px solid var(--border);
+    }
+  `]
 })
 export class InternshipsComponent implements OnInit {
   internships: Internship[] = [];
@@ -136,15 +236,15 @@ export class InternshipsComponent implements OnInit {
   error = '';
   success = '';
   applying: string | null = null;
-  
+
   sortBy = '';
   filterBy = '';
   filterValue = '';
-  
+
   private internshipService = inject(InternshipService);
   private applicationService = inject(ApplicationService);
   private authService = inject(AuthService);
-  
+
   currentUser$: Observable<any> = this.authService.currentUser$;
 
   ngOnInit() {
@@ -174,7 +274,7 @@ export class InternshipsComponent implements OnInit {
     if (this.filterBy && this.filterValue) {
       const searchTerm = this.filterValue.toLowerCase();
       result = result.filter(internship => {
-        switch(this.filterBy) {
+        switch (this.filterBy) {
           case 'title':
             return internship.title.toLowerCase().includes(searchTerm);
           case 'location':
@@ -190,7 +290,7 @@ export class InternshipsComponent implements OnInit {
     // Apply sorting
     if (this.sortBy) {
       result.sort((a, b) => {
-        switch(this.sortBy) {
+        switch (this.sortBy) {
           case 'title':
             return a.title.localeCompare(b.title);
           case 'location':

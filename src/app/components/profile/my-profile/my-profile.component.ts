@@ -40,19 +40,32 @@ import { AuthService } from '../../../services/auth.service';
           <div class="col-lg-4">
             <div class="card shadow-sm border-0">
               <div class="card-body text-center p-4">
-                <!-- Live Preview Image -->
+                <!-- Live Preview Image or Alphabetical Fallback -->
                 <div class="position-relative d-inline-block mb-3">
-                  <img 
-                    [src]="previewImage || getProfilePictureUrl()" 
-                    class="rounded-circle profile-image" 
-                    alt="Profile Picture">
+                  @if (previewImage || profile.profilePicture) {
+                    <div class="avatar-ring large">
+                      <img 
+                        [src]="previewImage || getProfilePictureUrl()" 
+                        class="avatar-img" 
+                        alt="Profile Picture">
+                    </div>
+                  } @else {
+                    <div class="avatar-ring large">
+                      <div class="avatar-gradient large">
+                        {{ (profile.username || profile.name || 'U').charAt(0) }}
+                      </div>
+                    </div>
+                  }
                   <div class="profile-badge">
-                    <span class="badge bg-primary">{{ profile.role || 'COMPANY' }}</span>
+                    <span class="badge bg-primary shadow-sm">{{ profile.role || 'USER' }}</span>
                   </div>
                 </div>
                 
                 <h5 class="mb-1">{{ profile.username || profile.name }}</h5>
-                <p class="text-muted mb-3">{{ profile.email }}</p>
+                <p class="text-muted small mb-1">{{ profile.email }}</p>
+                <div class="bio-container mb-3" *ngIf="profile.bio">
+                  <p class="bio-text text-muted mb-0">{{ profile.bio }}</p>
+                </div>
 
                 <!-- Picture Upload Form -->
                 <div class="picture-upload-section">
@@ -246,19 +259,63 @@ import { AuthService } from '../../../services/auth.service';
       width: 180px;
       height: 180px;
       object-fit: cover;
-      border: 4px solid #f8f9fa;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      transition: transform 0.3s ease;
+      border-radius: 50%;
     }
 
-    .profile-image:hover {
-      transform: scale(1.05);
+    .avatar-ring.large {
+      width: 185px;
+      height: 185px;
+      padding: 5px;
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 10px 25px rgba(79, 70, 229, 0.2);
+    }
+
+    .avatar-ring.large:hover {
+      transform: scale(1.02);
+    }
+
+    .avatar-gradient.large {
+      width: 100%;
+      height: 100%;
+      background: #f8fafc;
+      color: #4f46e5;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 5rem;
+      border: 4px solid white;
+    }
+
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid white;
     }
 
     .profile-badge {
       position: absolute;
-      bottom: 10px;
-      right: 10px;
+      bottom: 15px;
+      right: 15px;
+      z-index: 2;
+    }
+
+    .profile-badge .badge {
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      border: 2px solid white;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
 
     .picture-upload-section {
@@ -284,6 +341,17 @@ import { AuthService } from '../../../services/auth.service';
     .btn:hover:not(:disabled) {
       transform: translateY(-2px);
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .bio-text {
+      font-size: 0.85rem;
+      font-style: italic;
+      line-height: 1.4;
+      padding: 0 10px;
+    }
+    .bio-container {
+      border-top: 1px solid var(--border);
+      padding-top: 8px;
+      margin-top: 4px;
     }
   `]
 })
@@ -316,7 +384,7 @@ export class MyProfileComponent implements OnInit {
   constructor(
     private profileService: ProfileService,
     private authService: AuthService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.loadProfile();
@@ -331,6 +399,12 @@ export class MyProfileComponent implements OnInit {
         this.editDescription = data.description || '';
         this.editWebsite = data.website || '';
         this.loading = false;
+        // Sync with sidebar
+        this.authService.updateLocalUser({
+          username: data.username,
+          bio: data.bio,
+          profilePicture: data.profilePicture
+        });
       },
       error: (err) => {
         this.error = 'Failed to load profile';
@@ -358,10 +432,10 @@ export class MyProfileComponent implements OnInit {
         event.target.value = '';
         return;
       }
-      
+
       this.selectedFile = file;
       this.error = '';
-      
+
       // Create live preview
       const reader = new FileReader();
       reader.onload = (e: any) => {
@@ -380,10 +454,14 @@ export class MyProfileComponent implements OnInit {
 
     this.profileService.uploadProfilePicture(this.selectedFile).subscribe({
       next: (response) => {
-        this.success = 'Profile picture updated successfully!';
+        this.success = '✨ Profile picture updated successfully!';
         this.uploadingPicture = false;
         this.cancelPictureUpload();
         this.loadProfile();
+        // Sync with sidebar
+        if (response.profilePicture) {
+          this.authService.updateLocalUser({ profilePicture: response.profilePicture });
+        }
         setTimeout(() => this.success = '', 3000);
       },
       error: (err) => {
@@ -430,7 +508,7 @@ export class MyProfileComponent implements OnInit {
     this.success = '';
 
     const updateData: any = {};
-    
+
     if (this.profile.role !== 'COMPANY') {
       updateData.bio = this.editBio;
     } else {
@@ -440,9 +518,11 @@ export class MyProfileComponent implements OnInit {
 
     this.profileService.updateMyProfile(updateData).subscribe({
       next: (response) => {
-        this.success = 'Profile updated successfully!';
+        this.success = '✅ Your professional profile has been updated!';
         this.updatingProfile = false;
         this.loadProfile();
+        // Sync with sidebar
+        this.authService.updateLocalUser({ bio: this.editBio });
         setTimeout(() => this.success = '', 3000);
       },
       error: (err) => {

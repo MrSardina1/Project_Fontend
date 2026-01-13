@@ -4,15 +4,18 @@ import { Router } from '@angular/router';
 import { Observable, tap, BehaviorSubject } from 'rxjs';
 
 export interface User {
-  userId: string;
+  userId?: string;
+  id?: string;
+  name?: string;
   username: string;
   role: 'ADMIN' | 'COMPANY' | 'STUDENT';
   profilePicture?: string;
+  bio?: string;
 }
 
 export interface LoginResponse {
   access_token: string;
-  user: User;
+  user: any;
 }
 
 @Injectable({
@@ -32,7 +35,16 @@ export class AuthService {
       .pipe(
         tap(response => {
           localStorage.setItem('token', response.access_token);
-          this.currentUserSubject.next(response.user);
+          // Map backend response to our User interface
+          const user: User = {
+            userId: response.user.id,
+            username: response.user.username || response.user.name,
+            role: response.user.role,
+            profilePicture: response.user.profilePicture,
+            bio: response.user.bio
+          };
+          localStorage.setItem('user_metadata', JSON.stringify(user));
+          this.currentUserSubject.next(user);
         })
       );
   }
@@ -57,6 +69,7 @@ export class AuthService {
 
   logout() {
     localStorage.removeItem('token');
+    localStorage.removeItem('user_metadata');
     this.currentUserSubject.next(null);
 
     // Navigate based on previous role
@@ -75,16 +88,34 @@ export class AuthService {
     return this.currentUserSubject.value;
   }
 
+  updateLocalUser(userData: Partial<User>) {
+    const current = this.currentUserSubject.value;
+    if (current) {
+      const updated = { ...current, ...userData };
+      this.currentUserSubject.next(updated);
+      localStorage.setItem('user_metadata', JSON.stringify(updated));
+    }
+  }
+
   private loadUserFromToken() {
     const token = this.getToken();
+    const storedMetadata = localStorage.getItem('user_metadata');
+
     if (token) {
       try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        this.currentUserSubject.next({
-          userId: payload.sub,
-          username: payload.username,
-          role: payload.role
-        });
+        if (storedMetadata) {
+          const user = JSON.parse(storedMetadata);
+          this.currentUserSubject.next(user);
+        } else {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          this.currentUserSubject.next({
+            userId: payload.sub,
+            username: payload.username,
+            role: payload.role,
+            profilePicture: payload.profilePicture,
+            bio: payload.bio
+          });
+        }
       } catch (e) {
         this.logout();
       }

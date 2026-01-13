@@ -9,37 +9,9 @@ import { AdminService, AdminUser } from '../../../services/admin.service';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   template: `
-    <div class="admin-container">
-      <div class="admin-sidebar">
-        <h4 class="text-white mb-4">Admin Panel</h4>
-        <nav class="nav flex-column">
-          <a routerLink="/admin/dashboard" routerLinkActive="active" class="nav-link">
-            <i class="bi bi-speedometer2"></i> Dashboard
-          </a>
-          <a routerLink="/admin/users" routerLinkActive="active" class="nav-link">
-            <i class="bi bi-people"></i> Users
-          </a>
-          <a routerLink="/admin/companies" routerLinkActive="active" class="nav-link">
-            <i class="bi bi-building"></i> Companies
-          </a>
-          <a routerLink="/admin/pending-companies" routerLinkActive="active" class="nav-link">
-            <i class="bi bi-clock-history"></i> Pending Companies
-          </a>
-          <a routerLink="/admin/internships" routerLinkActive="active" class="nav-link">
-            <i class="bi bi-briefcase"></i> Internships
-          </a>
-          <a routerLink="/admin/applications" routerLinkActive="active" class="nav-link">
-            <i class="bi bi-file-text"></i> Applications
-          </a>
-          <a routerLink="/admin/reviews" routerLinkActive="active" class="nav-link">
-            <i class="bi bi-star"></i> Reviews
-          </a>
-        </nav>
-      </div>
-
-      <div class="admin-content">
-        <div class="container-fluid py-4">
-          <h2 class="mb-4">User Management</h2>
+    <div class="page-container py-4">
+      <div class="container-fluid">
+        <h2 class="mb-4 fw-800">User Management</h2>
 
           <!-- Filters -->
           <div class="card mb-4">
@@ -93,46 +65,68 @@ import { AdminService, AdminUser } from '../../../services/admin.service';
           <div class="card">
             <div class="card-body">
               <div class="table-responsive">
-                <table class="table table-hover">
+                <table class="table table-hover align-middle">
                   <thead>
                     <tr>
-                      <th>Profile</th>
-                      <th>Username</th>
+                      <th>User</th>
                       <th>Email</th>
                       <th>Role</th>
+                      <th>Status</th>
                       <th>Created</th>
-                      <th>Actions</th>
+                      <th class="text-end">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     @for (user of users; track user._id) {
-                      <tr>
+                      <tr [class.deactivated-row]="!user.isActive">
                         <td>
-                          <img 
-                            [src]="getProfilePicture(user.profilePicture)" 
-                            class="rounded-circle"
-                            width="40" 
-                            height="40"
-                            alt="Profile">
+                          <div class="d-flex align-items-center gap-3">
+                            <div class="avatar-container">
+                              <img 
+                                [src]="getProfilePicture(user.profilePicture)" 
+                                class="rounded-circle"
+                                width="40" 
+                                height="40"
+                                alt="Profile">
+                              @if (!user.isActive) {
+                                <div class="status-dot offline"></div>
+                              } @else {
+                                <div class="status-dot online"></div>
+                              }
+                            </div>
+                            <span class="user-name fw-600">{{ user.username }}</span>
+                          </div>
                         </td>
-                        <td>{{ user.username }}</td>
-                        <td>{{ user.email }}</td>
+                        <td class="text-muted">{{ user.email }}</td>
                         <td>
                           <span class="badge" [class]="getRoleBadgeClass(user.role)">
                             {{ user.role }}
                           </span>
                         </td>
-                        <td>{{ user.createdAt | date:'short' }}</td>
                         <td>
+                          @if (user.isActive) {
+                            <span class="badge bg-success-light text-success border-success-subtle">
+                              <i class="bi bi-check-circle me-1"></i>Active
+                            </span>
+                          } @else {
+                            <span class="badge bg-danger-light text-danger border-danger-subtle">
+                              <i class="bi bi-x-circle me-1"></i>Deactivated
+                            </span>
+                          }
+                        </td>
+                        <td class="small text-muted">{{ user.createdAt | date:'mediumDate' }}</td>
+                        <td class="text-end">
                           @if (user.role !== 'ADMIN') {
                             <button 
-                              class="btn btn-sm btn-danger" 
-                              (click)="deleteUser(user._id)"
+                              class="btn btn-sm" 
+                              [class]="user.isActive ? 'btn-outline-danger' : 'btn-outline-success'"
+                              (click)="toggleUserStatus(user)"
                               [disabled]="deleting === user._id">
                               @if (deleting === user._id) {
                                 <span class="spinner-border spinner-border-sm"></span>
                               } @else {
-                                Delete
+                                <i class="bi" [class]="user.isActive ? 'bi-person-x' : 'bi-person-check'"></i>
+                                {{ user.isActive ? 'Deactivate' : 'Activate' }}
                               }
                             </button>
                           }
@@ -150,47 +144,75 @@ import { AdminService, AdminUser } from '../../../services/admin.service';
               }
             </div>
           </div>
-        </div>
       </div>
     </div>
   `,
   styles: [`
-    .admin-container {
-      display: flex;
-      min-height: 100vh;
+    .page-container { width: 100%; animation: fadeIn 0.5s ease-out; }
+    .fw-600 { font-weight: 600; }
+    .fw-800 { font-weight: 800; }
+    .card { border: none; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+    
+    .deactivated-row {
+      background-color: #f8fafc;
+      opacity: 0.7;
+    }
+    
+    .deactivated-row img {
+      filter: grayscale(1);
     }
 
-    .admin-sidebar {
-      width: 250px;
-      background: #2c3e50;
-      padding: 20px;
-      position: fixed;
-      height: 100vh;
-      overflow-y: auto;
+    .avatar-container {
+      position: relative;
+      display: inline-block;
     }
 
-    .admin-sidebar .nav-link {
-      color: #ecf0f1;
-      padding: 12px 15px;
-      border-radius: 5px;
-      margin-bottom: 5px;
-      transition: all 0.3s;
+    .status-dot {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 2px solid white;
+    }
+    
+    .status-dot.online { background-color: #10b981; }
+    .status-dot.offline { background-color: #94a3b8; }
+
+    .bg-success-light { background-color: #f0fdf4; }
+    .bg-danger-light { background-color: #fef2f2; }
+    
+    .badge {
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-weight: 500;
     }
 
-    .admin-sidebar .nav-link:hover {
-      background: #34495e;
-      padding-left: 20px;
+    .table thead th {
+      border-top: none;
+      background: #f8fafc;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      padding: 1rem;
     }
 
-    .admin-sidebar .nav-link.active {
-      background: #3498db;
-      color: white;
+    .table tbody td {
+      padding: 1rem;
+      border-bottom: 1px solid #f1f5f9;
     }
 
-    .admin-content {
-      margin-left: 250px;
-      flex: 1;
-      background: #f8f9fa;
+    .btn-sm {
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      font-weight: 500;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   `]
 })
@@ -204,7 +226,7 @@ export class AdminUsersComponent implements OnInit {
   filterValue = '';
   deleting: string | null = null;
 
-  constructor(private adminService: AdminService) {}
+  constructor(private adminService: AdminService) { }
 
   ngOnInit() {
     this.loadUsers();
@@ -224,21 +246,22 @@ export class AdminUsersComponent implements OnInit {
     });
   }
 
-  deleteUser(id: string) {
-    if (!confirm('Are you sure you want to delete this user?')) {
+  toggleUserStatus(user: AdminUser) {
+    const action = user.isActive ? 'deactivate' : 'activate';
+    if (!confirm(`Are you sure you want to ${action} this user?`)) {
       return;
     }
 
-    this.deleting = id;
-    this.adminService.deleteUser(id).subscribe({
-      next: () => {
-        this.success = 'User deleted successfully';
+    this.deleting = user._id;
+    this.adminService.deleteUser(user._id).subscribe({
+      next: (response) => {
+        this.success = response.message;
         this.deleting = null;
         this.loadUsers();
         setTimeout(() => this.success = '', 3000);
       },
       error: (err) => {
-        this.error = err.error.message || 'Failed to delete user';
+        this.error = err.error.message || `Failed to ${action} user`;
         this.deleting = null;
       }
     });

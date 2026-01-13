@@ -8,37 +8,9 @@ import { AdminService, AdminCompany } from '../../../services/admin.service';
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <div class="admin-container">
-      <div class="admin-sidebar">
-        <h4 class="text-white mb-4">Admin Panel</h4>
-        <nav class="nav flex-column">
-          <a routerLink="/admin/dashboard" routerLinkActive="active" class="nav-link">
-            <i class="bi bi-speedometer2"></i> Dashboard
-          </a>
-          <a routerLink="/admin/users" routerLinkActive="active" class="nav-link">
-            <i class="bi bi-people"></i> Users
-          </a>
-          <a routerLink="/admin/companies" routerLinkActive="active" class="nav-link">
-            <i class="bi bi-building"></i> Companies
-          </a>
-          <a routerLink="/admin/pending-companies" routerLinkActive="active" class="nav-link">
-            <i class="bi bi-clock-history"></i> Pending Companies
-          </a>
-          <a routerLink="/admin/internships" routerLinkActive="active" class="nav-link">
-            <i class="bi bi-briefcase"></i> Internships
-          </a>
-          <a routerLink="/admin/applications" routerLinkActive="active" class="nav-link">
-            <i class="bi bi-file-text"></i> Applications
-          </a>
-          <a routerLink="/admin/reviews" routerLinkActive="active" class="nav-link">
-            <i class="bi bi-star"></i> Reviews
-          </a>
-        </nav>
-      </div>
-
-      <div class="admin-content">
-        <div class="container-fluid py-4">
-          <h2 class="mb-4">Pending Company Verifications</h2>
+    <div class="page-container py-4">
+      <div class="container-fluid">
+        <h2 class="mb-4 fw-800">Pending Company Verifications</h2>
 
           @if (loading) {
             <div class="text-center">
@@ -107,43 +79,13 @@ import { AdminService, AdminCompany } from '../../../services/admin.service';
               </div>
             </div>
           }
-        </div>
       </div>
     </div>
   `,
   styles: [`
-    .admin-container {
-      display: flex;
-      min-height: 100vh;
-    }
-    .admin-sidebar {
-      width: 250px;
-      background: #2c3e50;
-      padding: 20px;
-      position: fixed;
-      height: 100vh;
-      overflow-y: auto;
-    }
-    .admin-sidebar .nav-link {
-      color: #ecf0f1;
-      padding: 12px 15px;
-      border-radius: 5px;
-      margin-bottom: 5px;
-      transition: all 0.3s;
-    }
-    .admin-sidebar .nav-link:hover {
-      background: #34495e;
-      padding-left: 20px;
-    }
-    .admin-sidebar .nav-link.active {
-      background: #3498db;
-      color: white;
-    }
-    .admin-content {
-      margin-left: 250px;
-      flex: 1;
-      background: #f8f9fa;
-    }
+    .page-container { width: 100%; }
+    .fw-800 { font-weight: 800; }
+    .card { border: 1px solid var(--border); border-radius: 12px; }
   `]
 })
 export class PendingCompaniesComponent implements OnInit {
@@ -154,7 +96,7 @@ export class PendingCompaniesComponent implements OnInit {
   verifying: string | null = null;
   verifyingStatus: 'APPROVED' | 'REJECTED' | null = null;
 
-  constructor(private adminService: AdminService) {}
+  constructor(private adminService: AdminService) { }
 
   ngOnInit() {
     this.loadPendingCompanies();
@@ -182,7 +124,7 @@ export class PendingCompaniesComponent implements OnInit {
 
     this.verifying = id;
     this.verifyingStatus = status;
-    
+
     this.adminService.verifyCompany(id, status).subscribe({
       next: () => {
         this.success = `Company ${status.toLowerCase()} successfully!`;

@@ -19,206 +19,223 @@ interface DashboardStats {
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <div class="admin-container">
-      <div class="admin-sidebar">
-        <h4 class="text-white mb-4">Admin Panel</h4>
-        <nav class="nav flex-column">
-          <a routerLink="/admin/dashboard" routerLinkActive="active" class="nav-link">
-            <i class="bi bi-speedometer2"></i> Dashboard
-          </a>
-          <a routerLink="/admin/users" routerLinkActive="active" class="nav-link">
-            <i class="bi bi-people"></i> Users
-          </a>
-          <a routerLink="/admin/companies" routerLinkActive="active" class="nav-link">
-            <i class="bi bi-building"></i> Companies
-          </a>
-          <a routerLink="/admin/pending-companies" routerLinkActive="active" class="nav-link">
-            <i class="bi bi-clock-history"></i> Pending Companies
-            @if (stats && stats.pendingCompanies > 0) {
-              <span class="badge bg-warning ms-2">{{ stats.pendingCompanies }}</span>
-            }
-          </a>
-          <a routerLink="/admin/internships" routerLinkActive="active" class="nav-link">
-            <i class="bi bi-briefcase"></i> Internships
-          </a>
-          <a routerLink="/admin/applications" routerLinkActive="active" class="nav-link">
-            <i class="bi bi-file-text"></i> Applications
-          </a>
-          <a routerLink="/admin/reviews" routerLinkActive="active" class="nav-link">
-            <i class="bi bi-star"></i> Reviews
-          </a>
-          <hr class="bg-light">
-          <a (click)="logout()" class="nav-link text-danger" style="cursor: pointer;">
-            <i class="bi bi-box-arrow-right"></i> Logout
-          </a>
-        </nav>
-      </div>
+    <div class="page-container">
+      <header class="page-header mb-5">
+        <h1 class="page-title text-gradient">Admin Command Center</h1>
+        <p class="text-muted">Platform-wide oversight and performance metrics</p>
+      </header>
 
-      <div class="admin-content">
-        <div class="container-fluid py-4">
-          <h2 class="mb-4">Dashboard</h2>
+      @if (loading) {
+        <div class="d-flex justify-content-center py-5">
+          <div class="spinner-grow text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      }
 
-          @if (loading) {
-            <div class="text-center">
-              <div class="spinner-border" role="status">
-                <span class="visually-hidden">Loading...</span>
+      @if (error) {
+        <div class="alert alert-danger rounded-4 border-0 shadow-sm d-flex align-items-center mb-4">
+          <i class="bi bi-exclamation-circle-fill me-2 fs-5"></i>
+          <div>{{ error }}</div>
+        </div>
+      }
+
+      @if (stats) {
+        <div class="row g-4">
+          <!-- Main Stats -->
+          <div class="col-xl-3 col-md-6">
+            <div class="stat-card glass p-4 rounded-4 border-0 shadow-sm h-100">
+              <div class="d-flex justify-content-between mb-3">
+                <div class="icon-box bg-soft-primary"><i class="bi bi-people text-primary"></i></div>
+                <div class="trend text-success small"><i class="bi bi-arrow-up"></i> Total</div>
+              </div>
+              <h3 class="stat-value">{{ stats.totalStudents }}</h3>
+              <p class="stat-label mb-0">Registered Students</p>
+            </div>
+          </div>
+
+          <div class="col-xl-3 col-md-6">
+            <div class="stat-card glass p-4 rounded-4 border-0 shadow-sm h-100">
+              <div class="d-flex justify-content-between mb-3">
+                <div class="icon-box bg-soft-info"><i class="bi bi-building text-info"></i></div>
+                <div class="trend text-success small"><i class="bi bi-arrow-up"></i> Total</div>
+              </div>
+              <h3 class="stat-value">{{ stats.totalCompanies }}</h3>
+              <p class="stat-label mb-0">Partner Companies</p>
+            </div>
+          </div>
+
+          <div class="col-xl-3 col-md-6">
+            <div class="stat-card glass p-4 rounded-4 border-0 shadow-sm h-100" [class.border-warning]="stats.pendingCompanies > 0">
+              <div class="d-flex justify-content-between mb-3">
+                <div class="icon-box bg-soft-warning"><i class="bi bi-clock-history text-warning"></i></div>
+                <div class="badge bg-warning text-white rounded-pill" *ngIf="stats.pendingCompanies > 0">Action Required</div>
+              </div>
+              <h3 class="stat-value">{{ stats.pendingCompanies }}</h3>
+              <p class="stat-label mb-0">Pending Reviews</p>
+            </div>
+          </div>
+
+          <div class="col-xl-3 col-md-6">
+            <div class="stat-card glass p-4 rounded-4 border-0 shadow-sm h-100">
+              <div class="d-flex justify-content-between mb-3">
+                <div class="icon-box bg-soft-success"><i class="bi bi-briefcase text-success"></i></div>
+                <div class="trend text-success small"><i class="bi bi-check-lg"></i> Active</div>
+              </div>
+              <h3 class="stat-value">{{ stats.totalInternships }}</h3>
+              <p class="stat-label mb-0">Interships Hosted</p>
+            </div>
+          </div>
+
+          <!-- Secondary Stats -->
+          <div class="col-lg-4">
+            <div class="info-card glass p-4 rounded-4 border-0 shadow-sm">
+              <h5 class="fw-700 mb-3">User Engagement</h5>
+              <div class="d-flex align-items-center mb-4">
+                <div class="display-4 fw-800 text-main me-3">{{ stats.totalApplications }}</div>
+                <div class="text-muted small">Applications processed<br>platform-wide</div>
+              </div>
+              <div class="progress rounded-pill mb-2" style="height: 8px;">
+                <div class="progress-bar bg-primary" role="progressbar" style="width: 75%"></div>
+              </div>
+              <div class="d-flex justify-content-between small text-muted">
+                <span>Active Engagement</span>
+                <span>Target: 100%</span>
               </div>
             </div>
-          }
+          </div>
 
-          @if (error) {
-            <div class="alert alert-danger">{{ error }}</div>
-          }
-
-          @if (stats) {
-            <div class="row">
-              <div class="col-md-3 mb-4">
-                <div class="card bg-primary text-white">
-                  <div class="card-body">
-                    <h6 class="card-title">Total Students</h6>
-                    <h2 class="mb-0">{{ stats.totalStudents }}</h2>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-md-3 mb-4">
-                <div class="card bg-success text-white">
-                  <div class="card-body">
-                    <h6 class="card-title">Total Companies</h6>
-                    <h2 class="mb-0">{{ stats.totalCompanies }}</h2>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-md-3 mb-4">
-                <div class="card bg-warning text-white">
-                  <div class="card-body">
-                    <h6 class="card-title">Pending Companies</h6>
-                    <h2 class="mb-0">{{ stats.pendingCompanies }}</h2>
-                    @if (stats.pendingCompanies > 0) {
-                      <a routerLink="/admin/pending-companies" class="btn btn-sm btn-light mt-2">
-                        Review Now
-                      </a>
+          <div class="col-lg-4">
+            <div class="info-card glass p-4 rounded-4 border-0 shadow-sm">
+              <h5 class="fw-700 mb-3">System Reputation</h5>
+              <div class="d-flex align-items-center mb-3">
+                <div class="display-4 fw-800 text-warning me-3">{{ stats.averageRating }}</div>
+                <div>
+                  <div class="text-warning fs-5">
+                    @for (star of [1,2,3,4,5]; track star) {
+                      <i class="bi" [class.bi-star-fill]="star <= stats.averageRating" [class.bi-star]="star > stats.averageRating"></i>
                     }
                   </div>
+                  <div class="text-muted small">Based on {{ stats.totalReviews }} reviews</div>
                 </div>
               </div>
+              <p class="text-muted small mb-0">Overall satisfaction rating from students and companies.</p>
+            </div>
+          </div>
 
-              <div class="col-md-3 mb-4">
-                <div class="card bg-info text-white">
-                  <div class="card-body">
-                    <h6 class="card-title">Total Internships</h6>
-                    <h2 class="mb-0">{{ stats.totalInternships }}</h2>
+          <div class="col-lg-4">
+            <div class="info-card glass p-4 rounded-4 border-0 shadow-sm">
+              <h5 class="fw-700 mb-4">Quick Governance</h5>
+              <div class="d-grid gap-2">
+                <button routerLink="/admin/pending-companies" class="btn btn-warning py-2 rounded-3 fw-600">
+                  <i class="bi bi-shield-check me-2"></i>Review Queue
+                </button>
+                <div class="row g-2">
+                  <div class="col-6">
+                    <button routerLink="/admin/users" class="btn btn-light-primary w-100 py-2 rounded-3 small fw-600">Users</button>
                   </div>
-                </div>
-              </div>
-
-              <div class="col-md-4 mb-4">
-                <div class="card">
-                  <div class="card-body">
-                    <h6 class="card-title">Total Applications</h6>
-                    <h2 class="mb-0">{{ stats.totalApplications }}</h2>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-md-4 mb-4">
-                <div class="card">
-                  <div class="card-body">
-                    <h6 class="card-title">Average Rating</h6>
-                    <h2 class="mb-0">{{ stats.averageRating }} / 5</h2>
-                    <div class="text-warning fs-4">
-                      @for (star of [1,2,3,4,5]; track star) {
-                        <span>{{ star <= stats.averageRating ? '★' : '☆' }}</span>
-                      }
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="col-md-4 mb-4">
-                <div class="card">
-                  <div class="card-body">
-                    <h6 class="card-title">Total Reviews</h6>
-                    <h2 class="mb-0">{{ stats.totalReviews }}</h2>
+                  <div class="col-6">
+                    <button routerLink="/admin/companies" class="btn btn-light-primary w-100 py-2 rounded-3 small fw-600">Companies</button>
                   </div>
                 </div>
               </div>
             </div>
-
-            <div class="row mt-4">
-              <div class="col-md-12">
-                <div class="card">
-                  <div class="card-header">
-                    <h5 class="mb-0">Quick Actions</h5>
-                  </div>
-                  <div class="card-body">
-                    <div class="d-grid gap-2 d-md-flex">
-                      <button routerLink="/admin/pending-companies" class="btn btn-warning">
-                        Review Pending Companies ({{ stats.pendingCompanies }})
-                      </button>
-                      <button routerLink="/admin/users" class="btn btn-primary">
-                        Manage Users
-                      </button>
-                      <button routerLink="/admin/companies" class="btn btn-success">
-                        Manage Companies
-                      </button>
-                      <button routerLink="/admin/internships" class="btn btn-info">
-                        Manage Internships
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          }
+          </div>
         </div>
-      </div>
+
+        <div class="row mt-5">
+          <div class="col-12">
+            <div class="management-section glass p-4 rounded-4 border-0 shadow-sm">
+              <h5 class="fw-700 mb-4 px-2">Management Modules</h5>
+              <div class="row g-4">
+                <div class="col-md-4">
+                  <div class="module-link p-3 rounded-3 d-flex align-items-center" routerLink="/admin/internships">
+                    <div class="module-icon me-3 bg-soft-info"><i class="bi bi-journal-text text-info"></i></div>
+                    <div class="module-info">
+                      <div class="fw-700 text-main">Internships</div>
+                      <div class="small text-muted">Browse and moderate</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="module-link p-3 rounded-3 d-flex align-items-center" routerLink="/admin/applications">
+                    <div class="module-icon me-3 bg-soft-success"><i class="bi bi-file-earmark-person text-success"></i></div>
+                    <div class="module-info">
+                      <div class="fw-700 text-main">Applications</div>
+                      <div class="small text-muted">Auditing and logs</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="module-link p-3 rounded-3 d-flex align-items-center" routerLink="/admin/reviews">
+                    <div class="module-icon me-3 bg-soft-warning"><i class="bi bi-chat-heart text-warning"></i></div>
+                    <div class="module-info">
+                      <div class="fw-700 text-main">Reviews</div>
+                      <div class="small text-muted">Moderate feedback</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
     </div>
   `,
   styles: [`
-    .admin-container {
+    .page-container { width: 100%; padding: 0 1rem; }
+    .page-title { font-size: 2.25rem; font-weight: 800; margin-bottom: 0.25rem; }
+    
+    .fw-800 { font-weight: 800; }
+    .fw-700 { font-weight: 700; }
+    .fw-600 { font-weight: 600; }
+    .text-main { color: var(--text-main); }
+    
+    .stat-card {
+      background: white;
+      border: 1px solid var(--border) !important;
+      transition: all 0.3s ease;
+    }
+    .stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow) !important; }
+    
+    .icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
       display: flex;
-      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
     }
+    
+    .stat-value { font-size: 2rem; font-weight: 800; margin-bottom: 0.25rem; }
+    .stat-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    
+    .bg-soft-primary { background: rgba(79, 70, 229, 0.1); }
+    .bg-soft-info { background: rgba(6, 182, 212, 0.1); }
+    .bg-soft-warning { background: rgba(245, 158, 11, 0.1); }
+    .bg-soft-success { background: rgba(16, 185, 129, 0.1); }
 
-    .admin-sidebar {
-      width: 250px;
-      background: #2c3e50;
-      padding: 20px;
-      position: fixed;
-      height: 100vh;
-      overflow-y: auto;
+    .btn-light-primary { background: var(--primary-light); color: var(--primary); border: none; transition: all 0.2s; }
+    .btn-light-primary:hover { background: var(--primary); color: white; }
+    
+    .module-link {
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid transparent;
     }
-
-    .admin-sidebar .nav-link {
-      color: #ecf0f1;
-      padding: 12px 15px;
-      border-radius: 5px;
-      margin-bottom: 5px;
-      transition: all 0.3s;
+    .module-link:hover {
+      background: var(--bg-main);
+      border-color: var(--border);
     }
-
-    .admin-sidebar .nav-link:hover {
-      background: #34495e;
-      padding-left: 20px;
-    }
-
-    .admin-sidebar .nav-link.active {
-      background: #3498db;
-      color: white;
-    }
-
-    .admin-content {
-      margin-left: 250px;
-      flex: 1;
-      background: #f8f9fa;
-    }
-
-    .card {
-      border: none;
+    .module-icon {
+      width: 40px;
+      height: 40px;
       border-radius: 10px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
     }
   `]
 })
@@ -231,7 +248,7 @@ export class DashboardComponent implements OnInit {
     private adminService: AdminService,
     private authService: AuthService,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.loadStats();
