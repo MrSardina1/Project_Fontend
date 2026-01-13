@@ -439,14 +439,14 @@ export class MyProfileComponent implements OnInit {
     }
 
     this.profileService.updateMyProfile(updateData).subscribe({
-      next: () => {
+      next: (response) => {
         this.success = 'Profile updated successfully!';
         this.updatingProfile = false;
         this.loadProfile();
         setTimeout(() => this.success = '', 3000);
       },
       error: (err) => {
-        this.error = err.error.message || 'Failed to update profile';
+        this.error = err.error?.message || 'Failed to update profile';
         this.updatingProfile = false;
       }
     });

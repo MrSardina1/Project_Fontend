@@ -238,11 +238,14 @@ export class CompanyReviewsComponent implements OnInit {
     this.reviewError = '';
     this.reviewSuccess = '';
 
-    this.reviewService.create({
+    // Ensure rating is sent as integer
+    const reviewData = {
       companyId: this.companyReviews.company.id,
-      rating: this.newRating,  // This will be sent as integer
-      comment: this.newComment
-    }).subscribe({
+      rating: parseInt(this.newRating.toString(), 10),
+      comment: this.newComment.trim() || undefined
+    };
+
+    this.reviewService.create(reviewData).subscribe({
       next: () => {
         this.reviewSuccess = 'Review submitted successfully!';
         this.submitting = false;

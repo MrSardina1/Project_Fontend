@@ -1,41 +1,12 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AIChatService, ChatResponse } from '../../services/aichat.service';
+import { AIChatService, ChatResponse, CVData } from '../../services/aichat.service';
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: Date;
-}
-
-interface CVData {
-  fullName: string;
-  email: string;
-  phone?: string;
-  location?: string;
-  summary?: string;
-  skills: string[];
-  experience: Array<{
-    title: string;
-    company: string;
-    duration: string;
-    description: string;
-  }>;
-  education: Array<{
-    degree: string;
-    institution: string;
-    year: string;
-  }>;
-  projects?: Array<{
-    name: string;
-    description: string;
-    technologies: string[];
-  }>;
-  languages?: string[];
-  certifications?: string[];
-  careerGoals?: string;
-  preferredIndustries?: string[];
 }
 
 @Component({
