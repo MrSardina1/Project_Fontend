@@ -2,11 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { ProfileService, Profile } from '../../../services/profile.service';
+import { ImagePathPipe } from '../../../pipes/image-path.pipe';
 
 @Component({
   selector: 'app-user-profile',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ImagePathPipe],
   template: `
     <div class="container mt-4">
       @if (loading) {
@@ -25,7 +26,7 @@ import { ProfileService, Profile } from '../../../services/profile.service';
             <div class="row">
               <div class="col-md-3 text-center">
                 <img 
-                  [src]="getProfilePicture()" 
+                  [src]="profile.profilePicture | imagePath" 
                   class="rounded-circle mb-3"
                   width="150" 
                   height="150"
@@ -59,7 +60,7 @@ export class UserProfileComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private profileService: ProfileService
-  ) {}
+  ) { }
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');

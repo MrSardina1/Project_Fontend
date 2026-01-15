@@ -103,7 +103,7 @@ import { ProfileService } from '../../services/profile.service';
               </div>
               
               <div class="info" *ngIf="!isCollapsed">
-                <span class="name text-truncate">{{ user.username || 'User' }}</span>
+                <span class="name text-truncate">{{ user.name || user.username || 'User' }}</span>
                 <span class="bio-preview text-truncate" *ngIf="user.bio">{{ user.bio }}</span>
                 <span class="role" *ngIf="!user.bio">{{ user.role }}</span>
               </div>

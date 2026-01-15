@@ -2,11 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ApplicationService } from '../../../services/application.service';
+import { ImagePathPipe } from '../../../pipes/image-path.pipe';
 
 @Component({
   selector: 'app-accepted-companies',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ImagePathPipe],
   template: `
     <div class="container mt-4">
       <h2 class="mb-4">Companies That Accepted Me</h2>
@@ -32,7 +33,18 @@ import { ApplicationService } from '../../../services/application.service';
           <div class="col-md-6 mb-4">
             <div class="card h-100">
               <div class="card-body">
-                <h4>{{ company.name }}</h4>
+                <div class="d-flex align-items-center mb-3">
+                  <div class="company-avatar me-3">
+                    @if (company.profilePicture) {
+                      <img [src]="company.profilePicture | imagePath" alt="Logo" class="rounded-3 shadow-sm" style="width: 50px; height: 50px; object-fit: cover;">
+                    } @else {
+                      <div class="bg-primary-light text-primary rounded-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; font-weight: 700;">
+                        {{ company.name.charAt(0) }}
+                      </div>
+                    }
+                  </div>
+                  <h4 class="mb-0">{{ company.name }}</h4>
+                </div>
                 <p class="text-muted">{{ company.email }}</p>
                 @if (company.website) {
                   <p>
@@ -65,7 +77,7 @@ export class AcceptedCompaniesComponent implements OnInit {
   loading = false;
   error = '';
 
-  constructor(private applicationService: ApplicationService) {}
+  constructor(private applicationService: ApplicationService) { }
 
   ngOnInit() {
     this.loadAcceptedCompanies();

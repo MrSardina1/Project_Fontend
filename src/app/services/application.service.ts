@@ -20,6 +20,7 @@ export interface Application {
       name: string;
       email: string;
       website?: string;
+      profilePicture?: string;
     };
   };
   status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
@@ -32,7 +33,7 @@ export interface Application {
 export class ApplicationService {
   private apiUrl = 'http://localhost:3000/applications';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   apply(internshipId: string): Observable<Application> {
     return this.http.post<Application>(this.apiUrl, { internshipId });

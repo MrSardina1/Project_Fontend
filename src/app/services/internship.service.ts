@@ -16,6 +16,7 @@ export interface Internship {
   };
   createdAt: string;
   applicationCount?: number;
+  userApplicationStatus?: string;
 }
 
 @Injectable({
@@ -24,7 +25,7 @@ export interface Internship {
 export class InternshipService {
   private apiUrl = 'http://localhost:3000/internships';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getAll(): Observable<Internship[]> {
     return this.http.get<Internship[]>(this.apiUrl);

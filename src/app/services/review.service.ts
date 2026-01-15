@@ -7,10 +7,12 @@ export interface Review {
   user: {
     _id: string;
     username: string;
+    profilePicture?: string;
   };
   company: {
     _id: string;
     name: string;
+    profilePicture?: string;
   };
   rating: number;
   comment?: string;
@@ -35,7 +37,7 @@ export interface CompanyReviews {
 export class ReviewService {
   private apiUrl = 'http://localhost:3000/reviews';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   create(review: any): Observable<Review> {
     return this.http.post<Review>(this.apiUrl, review);

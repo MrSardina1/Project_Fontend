@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { ImagePathPipe } from '../../../pipes/image-path.pipe';
 
 interface Application {
   _id: string;
@@ -30,7 +31,7 @@ interface InternshipWithApplications {
 @Component({
   selector: 'app-internship-applications',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ImagePathPipe],
   template: `
     <div class="page-container">
       <header class="page-header mb-5">
@@ -136,7 +137,13 @@ interface InternshipWithApplications {
                     <tr>
                       <td class="ps-4">
                         <div class="d-flex align-items-center">
-                          <div class="avatar-sm me-3">{{ app.student.username.charAt(0) }}</div>
+                          <div class="avatar-sm me-3 overflow-hidden">
+                            @if (app.student.profilePicture) {
+                              <img [src]="app.student.profilePicture | imagePath" class="w-100 h-100 object-fit-cover" alt="Student Profile">
+                            } @else {
+                              {{ app.student.username.charAt(0) }}
+                            }
+                          </div>
                           <div class="fw-700 text-main">{{ app.student.username }}</div>
                         </div>
                       </td>

@@ -2,11 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReviewService, Review } from '../../services/review.service';
+import { ImagePathPipe } from '../../pipes/image-path.pipe';
 
 @Component({
   selector: 'app-my-reviews',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ImagePathPipe],
   template: `
     <div class="container mt-4">
       <h2>My Reviews</h2>
@@ -38,7 +39,16 @@ import { ReviewService, Review } from '../../services/review.service';
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start">
               <div class="flex-grow-1">
-                <h5>{{ review.company.name }}</h5>
+                <div class="d-flex align-items-center mb-3">
+                  <div class="company-logo-xs-container me-2">
+                    @if (review.company.profilePicture) {
+                      <img [src]="review.company.profilePicture | imagePath" class="company-logo-xs-img" alt="Logo">
+                    } @else {
+                      <div class="company-logo-xs-fallback">{{ review.company.name.charAt(0) }}</div>
+                    }
+                  </div>
+                  <h5 class="mb-0">{{ review.company.name }}</h5>
+                </div>
                 <div class="text-warning mb-2">
                   @for (star of [1,2,3,4,5]; track star) {
                     <span>{{ star <= review.rating ? '★' : '☆' }}</span>
@@ -90,7 +100,31 @@ import { ReviewService, Review } from '../../services/review.service';
         </div>
       }
     </div>
-  `
+  `,
+  styles: [`
+    .company-logo-xs-container {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--primary-light);
+    }
+    
+    .company-logo-xs-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .company-logo-xs-fallback {
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+  `]
 })
 export class MyReviewsComponent implements OnInit {
   reviews: Review[] = [];
@@ -102,7 +136,7 @@ export class MyReviewsComponent implements OnInit {
   editComment = '';
   updating = false;
 
-  constructor(private reviewService: ReviewService) {}
+  constructor(private reviewService: ReviewService) { }
 
   ngOnInit() {
     this.loadReviews();

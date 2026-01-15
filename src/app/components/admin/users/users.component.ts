@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { AdminService, AdminUser } from '../../../services/admin.service';
+import { ImagePathPipe } from '../../../pipes/image-path.pipe';
 
 @Component({
   selector: 'app-admin-users',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, ImagePathPipe],
   template: `
     <div class="page-container py-4">
       <div class="container-fluid">
@@ -83,7 +84,7 @@ import { AdminService, AdminUser } from '../../../services/admin.service';
                           <div class="d-flex align-items-center gap-3">
                             <div class="avatar-container">
                               <img 
-                                [src]="getProfilePicture(user.profilePicture)" 
+                                [src]="user.profilePicture | imagePath" 
                                 class="rounded-circle"
                                 width="40" 
                                 height="40"

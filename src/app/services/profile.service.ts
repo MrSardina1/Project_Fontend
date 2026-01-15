@@ -12,6 +12,15 @@ export interface Profile {
   name?: string;
   description?: string;
   website?: string;
+  user?: {
+    _id: string;
+    username: string;
+    name?: string;
+    email: string;
+    role: string;
+    profilePicture?: string;
+    bio?: string;
+  };
 }
 
 @Injectable({
@@ -20,7 +29,7 @@ export interface Profile {
 export class ProfileService {
   private apiUrl = 'http://localhost:3000/profile';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // Get own profile
   getMyProfile(): Observable<Profile> {
@@ -54,7 +63,7 @@ export class ProfileService {
   uploadProfilePicture(file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
-    
+
     return this.http.patch(`${this.apiUrl}/profile-picture`, formData);
   }
 
@@ -68,6 +77,16 @@ export class ProfileService {
     if (!profilePicture) {
       return '/assets/default-profile.png';
     }
-    return `http://localhost:3000/${profilePicture}`;
+
+    if (profilePicture.startsWith('http') || profilePicture.startsWith('data:')) {
+      return profilePicture;
+    }
+
+    let cleanPath = profilePicture.startsWith('/') ? profilePicture.substring(1) : profilePicture;
+    if (cleanPath.startsWith('uploads/')) {
+      cleanPath = cleanPath.substring(8);
+    }
+
+    return `http://localhost:3000/uploads/${cleanPath}`;
   }
 }

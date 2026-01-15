@@ -61,11 +61,13 @@ import { AuthService } from '../../../services/auth.service';
                   </div>
                 </div>
                 
-                <h5 class="mb-1">{{ profile.username || profile.name }}</h5>
-                <p class="text-muted small mb-1">{{ profile.email }}</p>
-                <div class="bio-container mb-3" *ngIf="profile.bio">
-                  <p class="bio-text text-muted mb-0">{{ profile.bio }}</p>
-                </div>
+                <h5 class="mb-1">{{ profile.name || profile.username || profile.user?.name || profile.user?.username || 'User' }}</h5>
+                <p class="text-muted small mb-1">{{ profile.email || profile.user?.email }}</p>
+                @if (profile.bio || profile.description) {
+                  <div class="bio-container mb-3">
+                    <p class="bio-text text-muted mb-0">{{ profile.bio || profile.description }}</p>
+                  </div>
+                }
 
                 <!-- Picture Upload Form -->
                 <div class="picture-upload-section">
@@ -131,7 +133,7 @@ import { AuthService } from '../../../services/auth.service';
               </div>
               <div class="card-body p-4">
                 <form (ngSubmit)="updateProfile()">
-                  @if (profile.role !== 'COMPANY') {
+                  @if (profile.role === 'STUDENT' || profile.role === 'user' || !profile.user) {
                     <div class="mb-3">
                       <label class="form-label fw-bold">
                         <i class="bi bi-pencil me-2"></i>Bio
@@ -146,7 +148,7 @@ import { AuthService } from '../../../services/auth.service';
                   } @else {
                     <div class="mb-3">
                       <label class="form-label fw-bold">
-                        <i class="bi bi-building me-2"></i>Company Description
+                        <i class="bi bi-building me-2"></i>Bio
                       </label>
                       <textarea 
                         class="form-control" 
@@ -393,16 +395,19 @@ export class MyProfileComponent implements OnInit {
   loadProfile() {
     this.loading = true;
     this.profileService.getMyProfile().subscribe({
-      next: (data) => {
+      next: (data: any) => {
         this.profile = data;
         this.editBio = data.bio || '';
         this.editDescription = data.description || '';
         this.editWebsite = data.website || '';
         this.loading = false;
         // Sync with sidebar
+        const actualRole = data.role || data.user?.role;
+        const isCompany = actualRole === 'COMPANY';
         this.authService.updateLocalUser({
-          username: data.username,
-          bio: data.bio,
+          name: data.name || data.user?.name,
+          username: data.username || data.user?.username || '',
+          bio: isCompany ? data.description : data.bio,
           profilePicture: data.profilePicture
         });
       },
@@ -507,9 +512,11 @@ export class MyProfileComponent implements OnInit {
     this.error = '';
     this.success = '';
 
+    const actualRole = this.profile.role || this.profile.user?.role;
+    const isCompany = actualRole === 'COMPANY';
     const updateData: any = {};
 
-    if (this.profile.role !== 'COMPANY') {
+    if (!isCompany) {
       updateData.bio = this.editBio;
     } else {
       updateData.description = this.editDescription;
@@ -517,12 +524,18 @@ export class MyProfileComponent implements OnInit {
     }
 
     this.profileService.updateMyProfile(updateData).subscribe({
-      next: (response) => {
+      next: (response: any) => {
         this.success = '✅ Your professional profile has been updated!';
         this.updatingProfile = false;
         this.loadProfile();
         // Sync with sidebar
-        this.authService.updateLocalUser({ bio: this.editBio });
+        const actualRole = this.profile.role || this.profile.user?.role;
+        const isComp = actualRole === 'COMPANY';
+        this.authService.updateLocalUser({
+          name: isComp ? (this.profile.name || response.name) : (this.profile.username || response.username),
+          bio: isComp ? this.editDescription : this.editBio,
+          profilePicture: response.profilePicture || this.profile.profilePicture
+        });
         setTimeout(() => this.success = '', 3000);
       },
       error: (err) => {

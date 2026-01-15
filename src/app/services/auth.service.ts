@@ -38,7 +38,8 @@ export class AuthService {
           // Map backend response to our User interface
           const user: User = {
             userId: response.user.id,
-            username: response.user.username || response.user.name,
+            name: response.user.name,
+            username: response.user.username,
             role: response.user.role,
             profilePicture: response.user.profilePicture,
             bio: response.user.bio
@@ -110,6 +111,7 @@ export class AuthService {
           const payload = JSON.parse(atob(token.split('.')[1]));
           this.currentUserSubject.next({
             userId: payload.sub,
+            name: payload.name,
             username: payload.username,
             role: payload.role,
             profilePicture: payload.profilePicture,

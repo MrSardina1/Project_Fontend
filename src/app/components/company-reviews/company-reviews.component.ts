@@ -1,15 +1,16 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
-import { ReviewService, CompanyReviews } from '../../services/review.service';
+import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ReviewService, CompanyReviews, Review } from '../../services/review.service';
 import { AuthService } from '../../services/auth.service';
+import { ImagePathPipe } from '../../pipes/image-path.pipe';
 import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-company-reviews',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule, ImagePathPipe],
   template: `
     <div class="container mt-4">
       @if (loading) {
@@ -132,8 +133,15 @@ import { Observable } from 'rxjs';
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-start">
                 <div class="flex-grow-1">
-                  <h5 class="mb-2">
-                    <i class="bi bi-person-circle me-2"></i>{{ review.user.username }}
+                  <h5 class="mb-2 d-flex align-items-center">
+                    @if (review.user.profilePicture) {
+                      <img [src]="review.user.profilePicture | imagePath" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;" alt="Profile">
+                    } @else {
+                      <i class="bi bi-person-circle me-2"></i>
+                    }
+                    <a [routerLink]="['/profile/user', review.user._id]" class="text-decoration-none text-dark hover-primary">
+                      {{ review.user.username }}
+                    </a>
                   </h5>
                   <div class="text-warning fs-5 mb-2">
                     @for (star of [1,2,3,4,5]; track star) {
@@ -200,11 +208,11 @@ export class CompanyReviewsComponent implements OnInit {
   submitting = false;
   reviewError = '';
   reviewSuccess = '';
-  
+
   private route = inject(ActivatedRoute);
   private reviewService = inject(ReviewService);
   private authService = inject(AuthService);
-  
+
   currentUser$: Observable<any> = this.authService.currentUser$;
 
   ngOnInit() {

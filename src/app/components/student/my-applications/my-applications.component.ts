@@ -2,11 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ApplicationService, Application } from '../../../services/application.service';
+import { ImagePathPipe } from '../../../pipes/image-path.pipe';
 
 @Component({
   selector: 'app-my-applications',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ImagePathPipe],
   template: `
     <div class="page-container">
       <header class="page-header mb-5">
@@ -49,7 +50,13 @@ import { ApplicationService, Application } from '../../../services/application.s
               <div class="row align-items-center">
                 <div class="col-md-7">
                   <div class="d-flex align-items-center mb-3">
-                    <div class="company-logo-sm me-3">{{ app.internship.company.name.charAt(0) }}</div>
+                    <div class="company-logo-sm-container me-3">
+                      @if (app.internship.company.profilePicture) {
+                        <img [src]="app.internship.company.profilePicture | imagePath" class="company-logo-sm-img" alt="Company Logo">
+                      } @else {
+                        <div class="company-logo-sm-fallback">{{ app.internship.company.name.charAt(0) }}</div>
+                      }
+                    </div>
                     <div>
                       <h4 class="intern-title mb-0">{{ app.internship.title }}</h4>
                       <div class="company-name text-primary">{{ app.internship.company.name }}</div>
@@ -103,15 +110,25 @@ import { ApplicationService, Application } from '../../../services/application.s
       border-color: var(--primary) !important;
     }
 
-    .company-logo-sm {
+    .company-logo-sm-container {
       width: 48px;
       height: 48px;
-      background: var(--primary-light);
-      color: var(--primary);
       border-radius: 12px;
+      overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
+      background: var(--primary-light);
+    }
+    
+    .company-logo-sm-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .company-logo-sm-fallback {
+      color: var(--primary);
       font-weight: 700;
       font-size: 1.25rem;
     }

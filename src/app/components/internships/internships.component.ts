@@ -5,12 +5,13 @@ import { RouterModule } from '@angular/router';
 import { InternshipService, Internship } from '../../services/internship.service';
 import { ApplicationService } from '../../services/application.service';
 import { AuthService } from '../../services/auth.service';
+import { ImagePathPipe } from '../../pipes/image-path.pipe';
 import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-internships',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, ImagePathPipe],
   template: `
     <div class="page-container">
       <header class="page-header d-flex justify-content-between align-items-center mb-5">
@@ -36,7 +37,6 @@ import { Observable } from 'rxjs';
                 class="form-control border-start-0 ps-0" 
                 [(ngModel)]="filterValue" 
                 (input)="applySortAndFilter()"
-                [disabled]="!filterBy"
                 placeholder="Search opportunities...">
             </div>
           </div>
@@ -57,7 +57,7 @@ import { Observable } from 'rxjs';
             </select>
           </div>
           <div class="col-lg-3 col-md-12 text-lg-end">
-            <button class="btn btn-outline-secondary px-4" (click)="filterBy = ''; filterValue = ''; applySortAndFilter()">
+            <button class="btn btn-outline-secondary px-4" (click)="filterBy = ''; filterValue = ''; sortBy = ''; applySortAndFilter()">
               Reset Filters
             </button>
           </div>
@@ -91,7 +91,13 @@ import { Observable } from 'rxjs';
           <div class="col-xl-4 col-lg-6 col-md-6">
             <div class="internship-card p-4 h-100 shadow-sm border-0 rounded-4">
               <div class="d-flex justify-content-between align-items-start mb-3">
-                <div class="company-logo">{{ internship.company.name.charAt(0) }}</div>
+                <div class="company-logo-container">
+                  @if (internship.company.profilePicture) {
+                    <img [src]="internship.company.profilePicture | imagePath" class="company-logo-img" alt="Company Logo">
+                  } @else {
+                    <div class="company-logo-fallback">{{ internship.company.name.charAt(0) }}</div>
+                  }
+                </div>
                 <div class="badge-group">
                   @if ((internship.applicationCount || 0) > 5) {
                     <span class="badge bg-soft-primary text-primary">Trending</span>
@@ -115,16 +121,22 @@ import { Observable } from 'rxjs';
               </p>
               
               <div class="card-actions mt-auto d-flex gap-2">
-                <button 
-                  class="btn btn-primary flex-grow-1"
-                  (click)="apply(internship._id)"
-                  [disabled]="applying === internship._id"
-                  *ngIf="(currentUser$ | async)?.role === 'STUDENT'">
-                  @if (applying === internship._id) {
-                    <span class="spinner-border spinner-border-sm me-1"></span>
-                  }
-                  Apply Now
-                </button>
+                  <button 
+                    class="btn btn-primary flex-grow-1"
+                    (click)="apply(internship._id)"
+                    [disabled]="applying === internship._id || internship.userApplicationStatus === 'PENDING' || internship.userApplicationStatus === 'ACCEPTED'"
+                    *ngIf="(currentUser$ | async)?.role === 'STUDENT'">
+                    @if (applying === internship._id) {
+                      <span class="spinner-border spinner-border-sm me-1"></span>
+                    }
+                    @if (internship.userApplicationStatus === 'ACCEPTED') {
+                      Accepted
+                    } @else if (internship.userApplicationStatus === 'PENDING') {
+                      Applied
+                    } @else {
+                      Apply Now
+                    }
+                  </button>
                 <a [routerLink]="['/profile/company', internship.company._id]" class="btn btn-light-primary px-3" title="View Company">
                   <i class="bi bi-eye"></i>
                 </a>
@@ -168,15 +180,25 @@ import { Observable } from 'rxjs';
       border-color: var(--primary) !important;
     }
 
-    .company-logo {
+    .company-logo-container {
       width: 48px;
       height: 48px;
-      background: var(--primary-light);
-      color: var(--primary);
       border-radius: 12px;
+      overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
+      background: var(--primary-light);
+    }
+    
+    .company-logo-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .company-logo-fallback {
+      color: var(--primary);
       font-weight: 700;
       font-size: 1.25rem;
     }
@@ -271,18 +293,25 @@ export class InternshipsComponent implements OnInit {
     let result = [...this.internships];
 
     // Apply filter
-    if (this.filterBy && this.filterValue) {
+    if (this.filterValue) {
       const searchTerm = this.filterValue.toLowerCase();
       result = result.filter(internship => {
-        switch (this.filterBy) {
-          case 'title':
-            return internship.title.toLowerCase().includes(searchTerm);
-          case 'location':
-            return internship.location.toLowerCase().includes(searchTerm);
-          case 'company':
-            return internship.company.name.toLowerCase().includes(searchTerm);
-          default:
-            return true;
+        if (this.filterBy) {
+          switch (this.filterBy) {
+            case 'title':
+              return internship.title.toLowerCase().includes(searchTerm);
+            case 'location':
+              return internship.location.toLowerCase().includes(searchTerm);
+            case 'company':
+              return internship.company.name.toLowerCase().includes(searchTerm);
+            default:
+              return true;
+          }
+        } else {
+          // General search across main fields if no specific filter is selected
+          return internship.title.toLowerCase().includes(searchTerm) ||
+            internship.location.toLowerCase().includes(searchTerm) ||
+            internship.company.name.toLowerCase().includes(searchTerm);
         }
       });
     }
