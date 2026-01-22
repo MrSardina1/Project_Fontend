@@ -22,146 +22,182 @@ import { Observable } from 'rxjs';
       }
 
       @if (companyReviews) {
-        <div class="card mb-4 shadow-sm border-0">
+        <div class="card mb-4 shadow-sm border-0 rounded-4 overflow-hidden">
           <div class="card-body p-4">
-            <h2 class="mb-3">
-              <i class="bi bi-building me-2"></i>{{ companyReviews.company.name }}
-            </h2>
-            <p class="text-muted mb-3">
-              <i class="bi bi-envelope me-2"></i>{{ companyReviews.company.email }}
-            </p>
-            @if (companyReviews.company.website) {
-              <a [href]="companyReviews.company.website" target="_blank" class="btn btn-outline-primary btn-sm mb-3">
-                <i class="bi bi-globe me-2"></i>Visit Website
-              </a>
-            }
-            <div class="rating-section mt-4 p-3 bg-light rounded">
-              <h4 class="mb-2">
-                <i class="bi bi-star-fill text-warning me-2"></i>
-                Average Rating: {{ companyReviews.averageRating }} / 5
-              </h4>
-              <div class="text-warning fs-3 mb-2">
-                @for (star of [1,2,3,4,5]; track star) {
-                  <span>{{ star <= companyReviews.averageRating ? '★' : '☆' }}</span>
+            <div class="d-flex align-items-center gap-4">
+              <div class="avatar-ring-md shadow-sm">
+                @if (companyReviews.company.profilePicture) {
+                  <img 
+                    [src]="companyReviews.company.profilePicture | imagePath" 
+                    class="avatar-img-md"
+                    alt="Company Logo">
+                } @else {
+                  <div class="avatar-white-content-md">
+                    {{ (companyReviews.company.name || 'C').charAt(0).toUpperCase() }}
+                  </div>
                 }
               </div>
-              <p class="text-muted mb-0">
-                <i class="bi bi-people me-2"></i>Based on {{ companyReviews.totalReviews }} reviews
-              </p>
+              <div>
+                <h2 class="fw-800 mb-1">
+                  {{ companyReviews.company.name }}
+                </h2>
+                <p class="text-muted mb-2 d-flex align-items-center gap-2">
+                  <i class="bi bi-envelope text-primary"></i> {{ companyReviews.company.email }}
+                </p>
+                @if (companyReviews.company.website) {
+                  <a [href]="companyReviews.company.website" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                    <i class="bi bi-globe me-1"></i> Visit Website
+                  </a>
+                }
+              </div>
+            </div>
+
+            <div class="rating-section mt-4 p-4 bg-light rounded-4">
+              <div class="row align-items-center">
+                <div class="col-auto">
+                  <div class="display-4 fw-800 text-dark mb-0">{{ companyReviews.averageRating }}<span class="fs-4 text-muted">/5</span></div>
+                </div>
+                <div class="col">
+                  <div class="text-warning fs-3 mb-1">
+                    @for (star of [1,2,3,4,5]; track star) {
+                      <span>{{ star <= companyReviews.averageRating ? '★' : '☆' }}</span>
+                    }
+                  </div>
+                  <p class="text-muted mb-0 small">
+                    <i class="bi bi-people me-1"></i> Based on {{ companyReviews.totalReviews }} reviews
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         @if ((currentUser$ | async)?.role === 'STUDENT' && !showReviewForm) {
-          <button class="btn btn-primary mb-4" (click)="showReviewForm = true">
+          <button class="btn btn-primary mb-4 rounded-pill px-4 shadow-sm" (click)="showReviewForm = true">
             <i class="bi bi-pencil-square me-2"></i>Write a Review
           </button>
         }
 
         @if (showReviewForm) {
-          <div class="card mb-4 shadow-sm border-0">
-            <div class="card-header bg-primary text-white">
-              <h5 class="mb-0">
-                <i class="bi bi-pencil-square me-2"></i>Write Your Review
-              </h5>
-            </div>
+          <div class="card mb-4 shadow-sm border-0 rounded-4 overflow-hidden">
             <div class="card-body p-4">
-              @if (reviewError) {
-                <div class="alert alert-danger alert-dismissible fade show">
-                  <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ reviewError }}
-                  <button type="button" class="btn-close" (click)="reviewError = ''"></button>
-                </div>
-              }
-              @if (reviewSuccess) {
-                <div class="alert alert-success alert-dismissible fade show">
-                  <i class="bi bi-check-circle-fill me-2"></i>{{ reviewSuccess }}
-                  <button type="button" class="btn-close" (click)="reviewSuccess = ''"></button>
-                </div>
-              }
-              <form (ngSubmit)="submitReview()">
-                <div class="mb-4">
-                  <label class="form-label fw-bold">
-                    <i class="bi bi-star me-2"></i>Rating (1-5 stars)
-                  </label>
-                  <select class="form-select form-select-lg" [(ngModel)]="newRating" name="rating" required>
-                    <option [value]="0" disabled selected>Select your rating</option>
-                    <option [value]="5">⭐⭐⭐⭐⭐ (5 - Excellent)</option>
-                    <option [value]="4">⭐⭐⭐⭐ (4 - Very Good)</option>
-                    <option [value]="3">⭐⭐⭐ (3 - Good)</option>
-                    <option [value]="2">⭐⭐ (2 - Fair)</option>
-                    <option [value]="1">⭐ (1 - Poor)</option>
-                  </select>
-                </div>
-                <div class="mb-4">
-                  <label class="form-label fw-bold">
-                    <i class="bi bi-chat-left-text me-2"></i>Your Review (optional)
-                  </label>
-                  <textarea 
-                    class="form-control" 
-                    [(ngModel)]="newComment" 
-                    name="comment" 
-                    rows="4"
-                    placeholder="Share your experience with this company..."></textarea>
-                </div>
-                <div class="btn-group">
-                  <button 
-                    type="submit" 
-                    class="btn btn-primary btn-lg" 
-                    [disabled]="submitting || newRating === 0">
-                    @if (submitting) {
-                      <span class="spinner-border spinner-border-sm me-2"></span>
-                    }
-                    <i class="bi bi-send me-2"></i>Submit Review
-                  </button>
-                  <button 
-                    type="button" 
-                    class="btn btn-outline-secondary btn-lg" 
-                    (click)="cancelReview()">
-                    <i class="bi bi-x-circle me-2"></i>Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        }
+              <h4 class="fw-700 mb-4">
+                <i class="bi bi-pencil-square me-2 text-primary"></i>Write Your Review
+              </h4>
 
-        <h3 class="mb-4">
-          <i class="bi bi-chat-square-text me-2"></i>Customer Reviews
-        </h3>
-        @for (review of companyReviews.reviews; track review._id) {
-          <div class="card mb-3 shadow-sm">
-            <div class="card-body">
-              <div class="d-flex justify-content-between align-items-start">
-                <div class="flex-grow-1">
-                  <h5 class="mb-2 d-flex align-items-center">
-                    @if (review.user.profilePicture) {
-                      <img [src]="review.user.profilePicture | imagePath" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;" alt="Profile">
-                    } @else {
-                      <i class="bi bi-person-circle me-2"></i>
-                    }
-                    <a [routerLink]="['/profile/user', review.user._id]" class="text-decoration-none text-dark hover-primary">
-                      {{ review.user.username }}
-                    </a>
-                  </h5>
-                  <div class="text-warning fs-5 mb-2">
-                    @for (star of [1,2,3,4,5]; track star) {
-                      <span>{{ star <= review.rating ? '★' : '☆' }}</span>
-                    }
-                  </div>
-                  @if (review.comment) {
-                    <p class="mt-2 mb-0">{{ review.comment }}</p>
+              @if (reviewError) {
+                <div class="alert alert-danger rounded-3 mb-3">
+                  <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ reviewError }}
+                </div>
+              }
+
+              @if (reviewSuccess) {
+                <div class="alert alert-success rounded-3 mb-3">
+                  <i class="bi bi-check-circle-fill me-2"></i>{{ reviewSuccess }}
+                </div>
+              }
+
+              <div class="mb-4">
+                <label class="form-label fw-600">Rating <span class="text-danger">*</span></label>
+                <div class="star-rating-input">
+                  @for (star of [1,2,3,4,5]; track star) {
+                    <i 
+                      class="bi star-clickable"
+                      [class.bi-star-fill]="star <= newRating"
+                      [class.bi-star]="star > newRating"
+                      (click)="newRating = star"
+                      (mouseenter)="hoverRating = star"
+                      (mouseleave)="hoverRating = 0"
+                      [class.text-warning]="star <= (hoverRating || newRating)"
+                      [class.text-muted]="star > (hoverRating || newRating)">
+                    </i>
+                  }
+                  @if (newRating > 0) {
+                    <span class="ms-2 text-muted small">{{ newRating }} out of 5</span>
                   }
                 </div>
-                <small class="text-muted">
-                  <i class="bi bi-calendar me-1"></i>{{ review.createdAt | date:'short' }}
-                </small>
+              </div>
+
+              <div class="mb-4">
+                <label class="form-label fw-600">Comment (Optional)</label>
+                <textarea 
+                  class="form-control rounded-3" 
+                  rows="4" 
+                  [(ngModel)]="newComment"
+                  placeholder="Share your experience with this company..."
+                  [disabled]="submitting"></textarea>
+              </div>
+
+              <div class="d-flex gap-2">
+                <button 
+                  class="btn btn-primary rounded-pill px-4"
+                  (click)="submitReview()"
+                  [disabled]="submitting || newRating === 0">
+                  @if (submitting) {
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                  }
+                  Submit Review
+                </button>
+                <button 
+                  class="btn btn-outline-secondary rounded-pill px-4"
+                  (click)="cancelReview()"
+                  [disabled]="submitting">
+                  Cancel
+                </button>
               </div>
             </div>
           </div>
         }
 
+        <h3 class="mb-4 fw-800">
+          <i class="bi bi-chat-square-text me-2 text-primary"></i>Customer Reviews
+        </h3>
+        
+        <div class="reviews-list">
+          @for (review of companyReviews.reviews; track review._id) {
+            <div class="card mb-3 shadow-sm border-0 rounded-4">
+              <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div class="d-flex gap-3">
+                    <div class="avatar-ring-sm shadow-sm mt-1">
+                      @if (review.user.profilePicture) {
+                        <img 
+                          [src]="review.user.profilePicture | imagePath" 
+                          class="avatar-img-sm"
+                          alt="Profile">
+                      } @else {
+                        <div class="avatar-white-content-sm">
+                          {{ (review.user.username || 'U').charAt(0).toUpperCase() }}
+                        </div>
+                      }
+                    </div>
+                    <div>
+                      <h5 class="mb-1 fw-700">
+                        <a [routerLink]="['/profile/user', review.user._id]" class="text-decoration-none text-dark hover-indigo">
+                          {{ review.user.username }}
+                        </a>
+                      </h5>
+                      <div class="text-warning small mb-3">
+                        @for (star of [1,2,3,4,5]; track star) {
+                          <i class="bi" [class]="star <= review.rating ? 'bi-star-fill' : 'bi-star'"></i>
+                        }
+                      </div>
+                      @if (review.comment) {
+                        <p class="mb-0 text-muted leading-relaxed">{{ review.comment }}</p>
+                      }
+                    </div>
+                  </div>
+                  <small class="text-muted bg-light px-2 py-1 rounded small">
+                    {{ review.createdAt | date:'mediumDate' }}
+                  </small>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
         @if (companyReviews.reviews.length === 0) {
-          <div class="alert alert-info">
+          <div class="alert alert-info rounded-4 border-0 shadow-sm p-4">
             <i class="bi bi-info-circle me-2"></i>
             No reviews yet. Be the first to review this company!
           </div>
@@ -176,25 +212,124 @@ import { Observable } from 'rxjs';
     </div>
   `,
   styles: [`
+    .fw-700 { font-weight: 700; }
+    .fw-800 { font-weight: 800; }
+    .leading-relaxed { line-height: 1.6; }
+    .hover-indigo:hover { color: #4f46e5 !important; }
+
+    .avatar-ring-md {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      padding: 3px;
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .avatar-white-content-md {
+      width: 100%;
+      height: 100%;
+      background: white;
+      color: #4f46e5;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 2rem;
+      text-transform: uppercase;
+      border: 2px solid white;
+    }
+
+    .avatar-img-md {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid white;
+    }
+
+    .avatar-ring-sm {
+      position: relative;
+      width: 44px;
+      height: 44px;
+      padding: 2px;
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .avatar-white-content-sm {
+      width: 100%;
+      height: 100%;
+      background: white;
+      color: #4f46e5;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.1rem;
+      text-transform: uppercase;
+      border: 1.5px solid white;
+    }
+
+    .avatar-img-sm {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1.5px solid white;
+    }
+
     .rating-section {
-      border-left: 4px solid #ffc107;
+      border-left: 5px solid #ffc107;
+      background-color: #f8fafc !important;
     }
 
     .card {
-      transition: all 0.3s ease;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
     .card:hover {
-      box-shadow: 0 8px 16px rgba(0,0,0,0.1) !important;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
     }
 
     .btn {
-      transition: all 0.3s ease;
+      transition: all 0.2s ease;
     }
 
     .btn:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+    }
+
+    .star-rating-input {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .star-clickable {
+      font-size: 2rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .star-clickable:hover {
+      transform: scale(1.2);
+    }
+
+    .fw-600 {
+      font-weight: 600;
     }
   `]
 })
@@ -208,6 +343,7 @@ export class CompanyReviewsComponent implements OnInit {
   submitting = false;
   reviewError = '';
   reviewSuccess = '';
+  hoverRating: number = 0;
 
   private route = inject(ActivatedRoute);
   private reviewService = inject(ReviewService);

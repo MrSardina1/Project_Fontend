@@ -8,7 +8,7 @@ import { Observable } from 'rxjs';
 export class CompanyService {
   private apiUrl = 'http://localhost:3000/company';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getMyInternships(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/my-internships`);
@@ -20,7 +20,7 @@ export class CompanyService {
     if (sortBy) params.sortBy = sortBy;
     if (filterBy) params.filterBy = filterBy;
     if (filterValue) params.filterValue = filterValue;
-    
+
     return this.http.get<any>(url, { params });
   }
 }

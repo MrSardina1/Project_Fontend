@@ -41,9 +41,9 @@ export interface CVData {
   providedIn: 'root'
 })
 export class AIChatService {
-  private apiUrl = 'http://localhost:3000/aichat';
+  private apiUrl = 'http://localhost:3001/aichat';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   ask(prompt: string): Observable<ChatResponse> {
     return this.http.post<ChatResponse>(`${this.apiUrl}/ask`, { prompt });
@@ -59,5 +59,15 @@ export class AIChatService {
 
   analyzeCV(): Observable<ChatResponse> {
     return this.http.get<ChatResponse>(`${this.apiUrl}/cv/analyze`);
+  }
+
+  uploadCV(file: File): Observable<ChatResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<ChatResponse>(`${this.apiUrl}/upload-cv`, formData);
+  }
+
+  deleteCV(): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.apiUrl}/cv`);
   }
 }

@@ -40,8 +40,18 @@ import { SidebarComponent } from './components/sidebar/sidebar.component';
       padding: 2rem;
       max-width: 1400px;
       margin: 0 auto;
+      width: 100%;
+      overflow-x: auto;
     }
-
+    
+    @media (max-width: 992px) {
+      .content-wrapper { padding: 1.5rem; }
+    }
+    
+    @media (max-width: 576px) {
+      .content-wrapper { padding: 1rem 0.5rem; }
+    }
+    
     @media (max-width: 768px) {
       .content-area {
         margin-left: 0;

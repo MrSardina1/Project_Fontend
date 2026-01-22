@@ -284,7 +284,7 @@ import { AuthService } from '../../../services/auth.service';
     .avatar-gradient.large {
       width: 100%;
       height: 100%;
-      background: #f8fafc;
+      background: white;
       color: #4f46e5;
       border-radius: 50%;
       display: flex;

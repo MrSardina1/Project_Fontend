@@ -61,7 +61,7 @@ interface DashboardStats {
                 <div class="trend text-success small"><i class="bi bi-arrow-up"></i> Total</div>
               </div>
               <h3 class="stat-value">{{ stats.totalCompanies }}</h3>
-              <p class="stat-label mb-0">Partner Companies</p>
+              <p class="stat-label mb-0">Total Companies</p>
             </div>
           </div>
 
@@ -69,10 +69,10 @@ interface DashboardStats {
             <div class="stat-card glass p-4 rounded-4 border-0 shadow-sm h-100" [class.border-warning]="stats.pendingCompanies > 0">
               <div class="d-flex justify-content-between mb-3">
                 <div class="icon-box bg-soft-warning"><i class="bi bi-clock-history text-warning"></i></div>
-                <div class="badge bg-warning text-white rounded-pill" *ngIf="stats.pendingCompanies > 0">Action Required</div>
+                <div class="badge-action-required" *ngIf="stats.pendingCompanies > 0">Action Required</div>
               </div>
               <h3 class="stat-value">{{ stats.pendingCompanies }}</h3>
-              <p class="stat-label mb-0">Pending Reviews</p>
+              <p class="stat-label mb-0">Pending companies</p>
             </div>
           </div>
 
@@ -83,7 +83,7 @@ interface DashboardStats {
                 <div class="trend text-success small"><i class="bi bi-check-lg"></i> Active</div>
               </div>
               <h3 class="stat-value">{{ stats.totalInternships }}</h3>
-              <p class="stat-label mb-0">Interships Hosted</p>
+              <p class="stat-label mb-0">Internships Hosted</p>
             </div>
           </div>
 
@@ -96,11 +96,11 @@ interface DashboardStats {
                 <div class="text-muted small">Applications processed<br>platform-wide</div>
               </div>
               <div class="progress rounded-pill mb-2" style="height: 8px;">
-                <div class="progress-bar bg-primary" role="progressbar" style="width: 75%"></div>
+                <div class="progress-bar bg-primary" role="progressbar" [style.width.%]="getEngagementRate()"></div>
               </div>
               <div class="d-flex justify-content-between small text-muted">
                 <span>Active Engagement</span>
-                <span>Target: 100%</span>
+                <span>Status: {{ getEngagementRate() }}%</span>
               </div>
             </div>
           </div>
@@ -127,7 +127,7 @@ interface DashboardStats {
             <div class="info-card glass p-4 rounded-4 border-0 shadow-sm">
               <h5 class="fw-700 mb-4">Quick Governance</h5>
               <div class="d-grid gap-2">
-                <button routerLink="/admin/pending-companies" class="btn btn-warning py-2 rounded-3 fw-600">
+                <button routerLink="/admin/pending-companies" class="btn btn-warning-gradient py-2 rounded-3 fw-600">
                   <i class="bi bi-shield-check me-2"></i>Review Queue
                 </button>
                 <div class="row g-2">
@@ -237,6 +237,53 @@ interface DashboardStats {
       justify-content: center;
       font-size: 1.25rem;
     }
+
+    .badge-action-required {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: white;
+      padding: 0.4rem 0.85rem;
+      border-radius: 50px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
+      border: none;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      align-self: flex-start;
+    }
+    
+    .badge-action-required::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: white;
+      border-radius: 50%;
+      display: inline-block;
+      animation: pulse-dot 1.5s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0% { transform: scale(0.9); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.5; }
+      100% { transform: scale(0.9); opacity: 1; }
+    }
+
+    .btn-warning-gradient {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      border: none;
+      color: white;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+    }
+    .btn-warning-gradient:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(245, 158, 11, 0.3);
+      color: white;
+      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    }
   `]
 })
 export class DashboardComponent implements OnInit {
@@ -266,6 +313,12 @@ export class DashboardComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  getEngagementRate(): number {
+    if (!this.stats) return 0;
+    const target = 10; // Define a target goal for applications
+    return Math.min((this.stats.totalApplications / target) * 100, 100);
   }
 
   logout() {

@@ -82,36 +82,68 @@ interface InternshipWithApplications {
         </div>
 
         <!-- Filters Section -->
-        <section class="filters-card glass p-4 mb-4 border-0 shadow-sm rounded-4">
-          <div class="row g-3">
-            <div class="col-md-4">
-              <div class="input-group search-group">
-                <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
-                <input 
-                  type="text" 
-                  class="form-control border-start-0 ps-0" 
-                  [(ngModel)]="nameFilter" 
-                  (input)="applyFilters()"
-                  placeholder="Search by student name...">
+        <!-- Filters Section -->
+        <div class="card mb-5 shadow-sm border-0 rounded-4 overflow-hidden filter-toolbar">
+          <div class="card-body p-3">
+            <div class="row g-3 align-items-center">
+              <!-- Search -->
+              <div class="col-lg-4 col-md-12">
+                <div class="search-box">
+                  <i class="bi bi-search search-icon"></i>
+                  <input 
+                    type="text" 
+                    class="form-control search-input" 
+                    [(ngModel)]="nameFilter" 
+                    (input)="applyFilters()"
+                    placeholder="Search by student name...">
+                  @if (nameFilter) {
+                    <button class="btn btn-clear" (click)="nameFilter = ''; applyFilters()">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <!-- Dropdowns -->
+              <div class="col-lg-6 col-md-12">
+                <div class="d-flex flex-wrap gap-2">
+                  <div class="filter-item flex-grow-1">
+                    <div class="input-group">
+                      <span class="input-group-text border-0 bg-light"><i class="bi bi-funnel text-primary small"></i></span>
+                      <select class="form-select border-0 bg-light rounded-end-3" [(ngModel)]="statusFilter" (change)="applyFilters()">
+                        <option value="">Status: All</option>
+                        <option value="ACCEPTED">Accepted</option>
+                        <option value="PENDING">Pending</option>
+                        <option value="REJECTED">Rejected</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="filter-item flex-grow-1">
+                    <div class="input-group">
+                      <span class="input-group-text border-0 bg-light"><i class="bi bi-sort-down text-primary small"></i></span>
+                      <select class="form-select border-0 bg-light rounded-end-3" [(ngModel)]="sortBy" (change)="applyFilters()">
+                        <option value="">Sort: Newest</option>
+                        <option value="name">Name (A-Z)</option>
+                        <option value="date">Date (Oldest)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Actions -->
+              <div class="col-lg-2 col-md-12 d-flex gap-2 justify-content-lg-end">
+                @if (nameFilter || statusFilter || sortBy) {
+                  <button class="btn btn-outline-secondary rounded-3 px-3 d-flex align-items-center gap-2" (click)="resetFilters()" title="Reset Filters">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                    <span>Reset</span>
+                  </button>
+                }
               </div>
             </div>
-            <div class="col-md-4">
-              <select class="form-select" [(ngModel)]="statusFilter" (change)="applyFilters()">
-                <option value="">All Statuses</option>
-                <option value="PENDING">Pending</option>
-                <option value="ACCEPTED">Accepted</option>
-                <option value="REJECTED">Rejected</option>
-              </select>
-            </div>
-            <div class="col-md-4">
-              <select class="form-select" [(ngModel)]="sortBy" (change)="applyFilters()">
-                <option value="">Sort by Date (Newest)</option>
-                <option value="name">Name (A-Z)</option>
-                <option value="date">Date (Oldest First)</option>
-              </select>
-            </div>
           </div>
-        </section>
+        </div>
 
         @if (filteredApplications.length === 0) {
           <div class="text-center py-5 glass rounded-4 shadow-sm border-0">
@@ -272,6 +304,101 @@ interface InternshipWithApplications {
 
     .search-group .form-control { border-radius: 10px; }
     .form-select { border-radius: 10px; }
+
+    /* Premium Filter Styles */
+    .filter-toolbar {
+      background: white;
+      border: none;
+    }
+
+    .search-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 1rem;
+      color: #64748b;
+      z-index: 10;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    .search-input {
+      padding-left: 2.75rem;
+      padding-right: 2.75rem;
+      background-color: #f8fafc;
+      border: 1.5px solid transparent;
+      border-radius: 12px;
+      height: 48px;
+      transition: all 0.2s;
+    }
+
+    .search-input:focus {
+      background-color: white !important;
+      border-color: #4f46e5 !important;
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1) !important;
+    }
+
+    .btn-clear {
+      position: absolute;
+      right: 0.5rem;
+      padding: 0.25rem 0.5rem;
+      color: #94a3b8;
+      border: none;
+      background: none;
+      z-index: 10;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .btn-clear:hover { color: #475569; }
+
+    .filter-item .input-group-text {
+      background-color: #f8fafc;
+      color: #64748b;
+      padding-right: 0;
+      border-radius: 12px 0 0 12px;
+    }
+
+    .filter-item .form-select {
+      height: 48px !important;
+      background-color: #f8fafc !important;
+      border-radius: 0 12px 12px 0 !important;
+      font-weight: 500;
+      color: #1e293b;
+      cursor: pointer;
+      border: none !important;
+    }
+    
+    .btn-outline-secondary {
+      height: 48px;
+      border: 1.5px solid #e2e8f0;
+      color: #64748b;
+      font-weight: 600;
+      transition: all 0.2s;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-outline-secondary:hover {
+      background-color: #f8fafc;
+      border-color: #cbd5e1;
+      color: #1e293b;
+    }
+
+    .bg-light { background-color: #f8fafc !important; }
+
+    .text-gradient {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
   `]
 })
 export class InternshipApplicationsComponent implements OnInit {
@@ -355,6 +482,13 @@ export class InternshipApplicationsComponent implements OnInit {
     }
 
     this.filteredApplications = result;
+  }
+
+  resetFilters() {
+    this.nameFilter = '';
+    this.statusFilter = '';
+    this.sortBy = '';
+    this.applyFilters();
   }
 
   updateStatus(applicationId: string, status: 'ACCEPTED' | 'REJECTED') {

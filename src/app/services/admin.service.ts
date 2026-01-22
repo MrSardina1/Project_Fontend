@@ -14,12 +14,16 @@ export interface DashboardStats {
 
 export interface AdminUser {
   _id: string;
+  name?: string;
   username: string;
   email: string;
   role: string;
   isActive: boolean;
   profilePicture?: string;
+  companyStatus?: string;
+  companyId?: string;
   createdAt: string;
+  deletedAt?: string;
 }
 
 export interface AdminCompany {
@@ -29,7 +33,12 @@ export interface AdminCompany {
   website?: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   user: any;
+  profilePicture?: string;
+  deletedAt?: string;
   createdAt: string;
+  internshipCount?: number;
+  reviewCount?: number;
+  applicationCount?: number;
 }
 
 export interface AdminInternship {
@@ -39,6 +48,13 @@ export interface AdminInternship {
   duration: string;
   company: any;
   createdAt: string;
+}
+
+export interface CompanyStats {
+  _id: string;
+  name: string;
+  email: string;
+  internshipCount: number;
 }
 
 @Injectable({
@@ -55,11 +71,12 @@ export class AdminService {
   }
 
   // Users
-  getAllUsers(sortBy?: string, filterBy?: string, filterValue?: string): Observable<AdminUser[]> {
+  getAllUsers(sortBy?: string, filterBy?: string, filterValue?: string, status?: string): Observable<AdminUser[]> {
     let params = new HttpParams();
     if (sortBy) params = params.set('sortBy', sortBy);
     if (filterBy) params = params.set('filterBy', filterBy);
     if (filterValue) params = params.set('filterValue', filterValue);
+    if (status) params = params.set('status', status);
 
     return this.http.get<AdminUser[]>(`${this.apiUrl}/users`, { params });
   }
@@ -74,6 +91,22 @@ export class AdminService {
 
   deleteUser(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/users/${id}`);
+  }
+
+  softDeleteUser(id: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/users/${id}/soft`);
+  }
+
+  restoreUser(id: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/users/${id}/restore`, {});
+  }
+
+  createUser(data: any): Observable<AdminUser> {
+    return this.http.post<AdminUser>(`${this.apiUrl}/users`, data);
+  }
+
+  updateRole(id: string, role: string): Observable<AdminUser> {
+    return this.http.patch<AdminUser>(`${this.apiUrl}/users/${id}/role`, { role });
   }
 
   // Companies
@@ -108,16 +141,30 @@ export class AdminService {
     return this.http.delete(`${this.apiUrl}/companies/${id}`);
   }
 
+  restoreCompany(id: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/companies/${id}/restore`, {});
+  }
+
+  getActiveCompanies(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/companies/active`);
+  }
+
+  getCompaniesWithStats(): Observable<CompanyStats[]> {
+    return this.http.get<CompanyStats[]>(`${this.apiUrl}/companies/stats`);
+  }
+
   // Internships
   getAllInternships(
     sortBy?: string,
     filterBy?: string,
-    filterValue?: string
+    filterValue?: string,
+    companyId?: string
   ): Observable<AdminInternship[]> {
     let params = new HttpParams();
     if (sortBy) params = params.set('sortBy', sortBy);
     if (filterBy) params = params.set('filterBy', filterBy);
     if (filterValue) params = params.set('filterValue', filterValue);
+    if (companyId) params = params.set('company', companyId);
 
     return this.http.get<AdminInternship[]>(`${this.apiUrl}/internships`, { params });
   }
@@ -132,8 +179,16 @@ export class AdminService {
   }
 
   // Reviews
-  getAllReviews(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/reviews`);
+  getAllReviews(companyId?: string, reviewerName?: string): Observable<any[]> {
+    let params = new HttpParams();
+    if (companyId) params = params.set('company', companyId);
+    if (reviewerName) params = params.set('reviewer', reviewerName);
+
+    return this.http.get<any[]>(`${this.apiUrl}/reviews`, { params });
+  }
+
+  getCompaniesWithReviewCounts(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/reviews/companies`);
   }
 
   deleteReview(id: string): Observable<any> {

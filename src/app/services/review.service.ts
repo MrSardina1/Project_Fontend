@@ -25,6 +25,7 @@ export interface CompanyReviews {
     name: string;
     email: string;
     website?: string;
+    profilePicture?: string;
   };
   averageRating: number;
   totalReviews: number;

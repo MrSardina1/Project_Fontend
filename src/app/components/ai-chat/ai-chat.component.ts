@@ -29,18 +29,29 @@ interface Message {
                 <div class="alert alert-success mb-3">
                   <i class="bi bi-check-circle me-2"></i>CV Uploaded
                 </div>
-                <button class="btn btn-outline-primary w-100 mb-2" (click)="showCVForm = true">
-                  <i class="bi bi-pencil me-2"></i>Edit CV
-                </button>
-                <button class="btn btn-primary w-100" (click)="analyzeCV()" [disabled]="loading">
+                <button class="btn btn-primary w-100 mb-3" (click)="analyzeCV()" [disabled]="loading">
                   <i class="bi bi-graph-up me-2"></i>Get Recommendations
                 </button>
               } @else {
-                <p class="text-muted mb-3">Upload your CV to get personalized internship recommendations</p>
-                <button class="btn btn-primary w-100" (click)="showCVForm = true">
-                  <i class="bi bi-upload me-2"></i>Upload CV
+                <div class="alert alert-info mb-3">
+                  <i class="bi bi-info-circle me-2"></i>No CV uploaded yet.
+                </div>
+              }
+              
+              <button class="btn btn-outline-primary w-100 mb-2" (click)="fileInput.click()" [disabled]="loading">
+                <i class="bi bi-upload me-2"></i>{{ hasCV ? 'Update CV (PDF)' : 'Upload CV (PDF)' }}
+              </button>
+              <input #fileInput type="file" class="d-none" accept=".pdf" (change)="onFileSelected($event)">
+              
+              @if (hasCV) {
+                <button class="btn btn-outline-danger w-100 mb-2" (click)="resetCV()" [disabled]="loading">
+                  <i class="bi bi-trash me-2"></i>Reset CV
                 </button>
               }
+              
+              <div class="mt-3 small text-muted">
+                <i class="bi bi-shield-check me-1"></i>Your information is used only for matching.
+              </div>
             </div>
           </div>
         </div>
@@ -169,72 +180,6 @@ interface Message {
         </div>
       </div>
     </div>
-
-    <!-- CV Form Modal -->
-    @if (showCVForm) {
-      <div class="modal show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-          <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-              <h5 class="modal-title">
-                <i class="bi bi-file-earmark-person me-2"></i>CV Information
-              </h5>
-              <button type="button" class="btn-close btn-close-white" (click)="showCVForm = false"></button>
-            </div>
-            <div class="modal-body">
-              <form (ngSubmit)="saveCV()">
-                <div class="row g-3">
-                  <div class="col-md-6">
-                    <label class="form-label fw-bold">Full Name *</label>
-                    <input type="text" class="form-control" [(ngModel)]="cvData.fullName" name="fullName" required>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label fw-bold">Email *</label>
-                    <input type="email" class="form-control" [(ngModel)]="cvData.email" name="email" required>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label fw-bold">Phone</label>
-                    <input type="tel" class="form-control" [(ngModel)]="cvData.phone" name="phone">
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label fw-bold">Location</label>
-                    <input type="text" class="form-control" [(ngModel)]="cvData.location" name="location">
-                  </div>
-                  <div class="col-12">
-                    <label class="form-label fw-bold">Professional Summary</label>
-                    <textarea class="form-control" [(ngModel)]="cvData.summary" name="summary" rows="3"></textarea>
-                  </div>
-                  <div class="col-12">
-                    <label class="form-label fw-bold">Skills (comma-separated) *</label>
-                    <input type="text" class="form-control" [(ngModel)]="skillsText" name="skills" 
-                           placeholder="e.g., JavaScript, React, Python, Data Analysis" required>
-                  </div>
-                  <div class="col-12">
-                    <label class="form-label fw-bold">Career Goals</label>
-                    <textarea class="form-control" [(ngModel)]="cvData.careerGoals" name="careerGoals" rows="2"
-                              placeholder="What are your career aspirations?"></textarea>
-                  </div>
-                  <div class="col-12">
-                    <label class="form-label fw-bold">Preferred Industries (comma-separated)</label>
-                    <input type="text" class="form-control" [(ngModel)]="industriesText" name="industries"
-                           placeholder="e.g., Technology, Finance, Healthcare">
-                  </div>
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" (click)="showCVForm = false">Cancel</button>
-                  <button type="submit" class="btn btn-primary" [disabled]="savingCV">
-                    @if (savingCV) {
-                      <span class="spinner-border spinner-border-sm me-2"></span>
-                    }
-                    Save CV
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-    }
   `,
   styles: [`
     .bg-gradient-primary {
@@ -321,27 +266,16 @@ interface Message {
 })
 export class AIChatComponent implements OnInit {
   @ViewChild('chatContainer') chatContainer!: ElementRef;
-  
+
   messages: Message[] = [];
   prompt = '';
   loading = false;
   error = '';
-  
+  uploadingFile = false;
+
   // CV related
   hasCV = false;
-  showCVForm = false;
-  savingCV = false;
-  cvData: CVData = {
-    fullName: '',
-    email: '',
-    skills: [],
-    experience: [],
-    education: []
-  };
-  skillsText = '';
-  industriesText = '';
-
-  constructor(private aiChatService: AIChatService) {}
+  constructor(private aiChatService: AIChatService) { }
 
   ngOnInit() {
     this.checkCV();
@@ -349,13 +283,8 @@ export class AIChatComponent implements OnInit {
 
   checkCV() {
     this.aiChatService.getCV().subscribe({
-      next: (cv: CVData | null) => {
+      next: (cv: any) => {
         this.hasCV = !!cv;
-        if (cv) {
-          this.cvData = cv;
-          this.skillsText = cv.skills.join(', ');
-          this.industriesText = cv.preferredIndustries?.join(', ') || '';
-        }
       },
       error: () => {
         this.hasCV = false;
@@ -363,46 +292,79 @@ export class AIChatComponent implements OnInit {
     });
   }
 
-  saveCV() {
-    this.cvData.skills = this.skillsText.split(',').map(s => s.trim()).filter(s => s);
-    this.cvData.preferredIndustries = this.industriesText.split(',').map(s => s.trim()).filter(s => s);
-    
-    this.savingCV = true;
-    this.aiChatService.saveCV(this.cvData).subscribe({
-      next: () => {
-        this.hasCV = true;
-        this.showCVForm = false;
-        this.savingCV = false;
-        this.addSystemMessage('CV saved successfully! You can now get personalized recommendations.');
-      },
-      error: (err) => {
-        this.error = 'Failed to save CV';
-        this.savingCV = false;
-      }
-    });
-  }
-
   analyzeCV() {
     this.loading = true;
     this.error = '';
-    
+
     this.addSystemMessage('Analyzing your CV and matching with available internships...');
 
     this.aiChatService.analyzeCV().subscribe({
       next: (response: ChatResponse) => {
-        this.messages.push({
-          role: 'assistant',
-          content: response.response,
-          timestamp: new Date()
-        });
+        this.addAssistantMessage(response.response);
         this.loading = false;
-        this.scrollToBottom();
       },
       error: (err) => {
         this.error = 'Failed to analyze CV';
         this.loading = false;
       }
     });
+  }
+
+  resetCV() {
+    if (confirm('Are you sure you want to delete your CV data? This action cannot be undone.')) {
+      this.loading = true;
+      this.aiChatService.deleteCV().subscribe({
+        next: () => {
+          this.hasCV = false;
+          this.loading = false;
+          this.addSystemMessage('CV data has been reset successfully.');
+        },
+        error: (err: any) => {
+          this.error = 'Failed to reset CV';
+          this.loading = false;
+          this.addSystemMessage('Error: Failed to reset CV data.');
+        }
+      });
+    }
+  }
+
+  onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (file) {
+      if (file.type !== 'application/pdf') {
+        this.error = 'Please upload a PDF file';
+        return;
+      }
+
+      this.uploadingFile = true;
+      this.loading = true;
+      this.addSystemMessage(`Uploading and analyzing CV: ${file.name}...`);
+
+      this.aiChatService.uploadCV(file).subscribe({
+        next: (response: ChatResponse) => {
+          this.addAssistantMessage(response.response);
+          this.uploadingFile = false;
+          this.loading = false;
+          this.hasCV = true;
+          this.checkCV(); // Refresh CV data if available
+        },
+        error: (err: any) => {
+          this.error = err.error?.message || err.error?.response || 'Failed to upload or analyze CV';
+          this.uploadingFile = false;
+          this.loading = false;
+          this.addSystemMessage('System Error: ' + this.error);
+        }
+      });
+    }
+  }
+
+  addAssistantMessage(content: string) {
+    this.messages.push({
+      role: 'assistant',
+      content: content,
+      timestamp: new Date()
+    });
+    this.scrollToBottom();
   }
 
   sendMessage() {

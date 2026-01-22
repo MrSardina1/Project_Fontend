@@ -107,14 +107,16 @@ body {
 }
 
 /* Enhanced Forms */
-.form-control, .form-select {
+.form-control,
+.form-select {
   border-radius: 8px;
   border: 2px solid #e2e8f0;
   padding: 0.75rem 1rem;
   transition: all var(--transition-speed) ease;
 }
 
-.form-control:focus, .form-select:focus {
+.form-control:focus,
+.form-select:focus {
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
   transform: translateY(-1px);
@@ -143,6 +145,7 @@ body {
     opacity: 0;
     transform: translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -247,6 +250,7 @@ body {
     opacity: 0;
     transform: scale(0.9);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -268,6 +272,7 @@ body {
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -284,11 +289,11 @@ body {
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
   }
-  
+
   .card {
     margin-bottom: 1rem;
   }
-  
+
   .table {
     font-size: 0.875rem;
   }
@@ -297,6 +302,7 @@ body {
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
@@ -333,9 +339,12 @@ body {
 
 /* Pulse Animation */
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.5;
   }
